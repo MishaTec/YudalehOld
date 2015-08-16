@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Yudaleh</string>
+
+    <string name="add_item">Add</string>
+    <string name="title_activity_item_edit">Edit item</string>
+    <string name="title_activity_item_add">Add new item</string>
+    <string name="button_cancel">Cancel</string>
+    <string name="button_ok">OK</string>
+
+</resources>
