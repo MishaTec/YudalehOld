@@ -35,8 +35,7 @@ import com.parse.SaveCallback;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-//16:29 mic
-//16:26
+
 /**
  * Todo:
  * - read DB onCreate - only query once!
@@ -44,6 +43,7 @@ import java.util.Date;
  * - prevent onCreate after add/edit
  * - add alarm cancel
  * - parse broadcast receiver nullpointerexception
+ * - add night mode
  */
 public class MainActivity extends AppCompatActivity {
     private static final int NEW_ITEM_REQUEST = 42;
@@ -229,10 +229,10 @@ public class MainActivity extends AppCompatActivity {
         if (i < 2) {
             // todo
             // This will be run only at first launch:
-            Parse.initialize(this, "1wOBsSzT94l7KHNBFfofmIg0VvpAVVO2o9K7GXoF", "M6unV2mvfdN7e24AnoJ9GTE67YjWTf0jZI7Ky3LZ");
+/*            Parse.initialize(this, "1wOBsSzT94l7KHNBFfofmIg0VvpAVVO2o9K7GXoF", "M6unV2mvfdN7e24AnoJ9GTE67YjWTf0jZI7Ky3LZ");
 //        PushService.setDefaultPuchCallback(this, MainActivity.class); fixme
             ParseInstallation.getCurrentInstallation().saveInBackground();
-            ParsePush.subscribeInBackground("", new SaveCallback() {
+            ParsePush.subscribeInBackground("iOwe", new SaveCallback() {
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                         System.out.println(e.getMessage());
                     }
                 }
-            });
+            });*/
 
             i++;
             editor.putInt("numberoflaunches", i);
@@ -266,6 +266,13 @@ public class MainActivity extends AppCompatActivity {
         todoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> av, View v, final int pos, final long rowId) { // rowId = pos + 1
+                updateItem(rowId, pos);
+            }
+        });
+        todoList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> av, View v, final int pos, final long rowId) { // rowId = pos + 1
+                updateItem(rowId, pos);
                 final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 String title = ((TextView) v.findViewById(R.id.txtTitle)).getText().toString();
                 String owner = ((TextView) v.findViewById(R.id.txtOwner)).getText().toString();
@@ -287,12 +294,8 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
-                builder.setNeutralButton("Edit", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        updateItem(rowId, pos);
-                    }
-                });
                 builder.show();
+                return true;
             }
         });
     }
