@@ -98,6 +98,7 @@ public class ItemEditActivity extends AppCompatActivity {
 
                     @Override
                     public void onDateTimeSet(Date date, long rowId) {
+                        date.setSeconds(0);
                         ((Button) findViewById(R.id.btnRemind)).setText(android.text.format.DateFormat.format("MM/dd/yy h:mmaa", date.getTime()));
                         ((CheckBox) findViewById(R.id.checkRemind)).setChecked(true);
                         response.putExtra("dueDate", date);

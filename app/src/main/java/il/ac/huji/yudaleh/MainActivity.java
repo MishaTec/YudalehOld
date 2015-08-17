@@ -63,12 +63,15 @@ public class MainActivity extends AppCompatActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             View view = inflater.inflate(R.layout.list_item, null);
-
             Cursor item = (Cursor) getItem(position);
 
             TextView titleText = (TextView) view.findViewById(R.id.txtTitle);
             titleText.setText(item.getString(DBHelper.TITLE_COLUMN_INDEX));
             titleText.setTextColor(Color.BLACK);
+
+            TextView ownerText = (TextView) view.findViewById(R.id.txtOwner);
+            ownerText.setText(item.getString(DBHelper.OWNER_COLUMN_INDEX));
+            ownerText.setTextColor(Color.BLACK);
 
             TextView dueDateText = (TextView) view.findViewById(R.id.txtTodoDueDate);
             if (item.isNull(DBHelper.DUE_COLUMN_INDEX)) {
@@ -76,7 +79,12 @@ public class MainActivity extends AppCompatActivity {
                 dueDateText.setTextColor(Color.BLACK);
             } else {
                 Date dueDate = new Date(item.getLong(DBHelper.DUE_COLUMN_INDEX));
-                dueDateText.setText(android.text.format.DateFormat.format("MM/dd/yy h:mmaa", dueDate.getTime()));
+                String format = "kk:mm MM/dd yyyy ";
+                Calendar now = Calendar.getInstance();
+                if(dueDate.getYear() == now.getTime().getYear()){
+                    format = "kk:mm MM/dd";
+                }
+                dueDateText.setText(android.text.format.DateFormat.format(format, dueDate.getTime()));
                 dueDateText.setTextColor(Color.BLACK);
                 if (isOverdue(dueDate)) {
                     dueDateText.setTextColor(Color.RED);
@@ -248,18 +256,19 @@ public class MainActivity extends AppCompatActivity {
         helper = new DBHelper(this);
 
         ListView todoList = (ListView) findViewById(R.id.lstTodoItems);
-        String[] from = new String[]{"title", "due"};
-        int[] to = new int[]{R.id.txtTitle, R.id.txtTodoDueDate};
+        String[] from = new String[]{"title","owner", "due"};
+        int[] to = new int[]{R.id.txtTitle, R.id.txtOwner, R.id.txtTodoDueDate};
         adapter = new TodoListAdapter(this, R.layout.list_item, helper.getCursor(), from, to,
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         todoList.setAdapter(adapter);
 
-        todoList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        todoList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> av, View v, final int pos, final long rowId) { // rowId = pos + 1
+            public void onItemClick(AdapterView<?> av, View v, final int pos, final long rowId) { // rowId = pos + 1
                 final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 String title = ((TextView) v.findViewById(R.id.txtTitle)).getText().toString();
-                builder.setMessage(title);
+                String owner = ((TextView) v.findViewById(R.id.txtOwner)).getText().toString();
+                builder.setMessage("You owe " + owner + " " + title);
                 builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         helper.delete(rowId);
@@ -283,7 +292,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
                 builder.show();
-                return true;
             }
         });
     }
