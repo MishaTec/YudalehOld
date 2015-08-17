@@ -10,29 +10,44 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
+import java.util.Date;
+
 import com.github.jjobes.slidedatetimepicker.SlideDateTimeListener;
 import com.github.jjobes.slidedatetimepicker.SlideDateTimePicker;
 
-import java.util.Date;
-
-
+/**
+ * Activity for adding new items and editing exiting,
+ * Must be called only from {@link il.ac.huji.yudaleh.MainActivity} for a result.
+ */
 public class ItemEditActivity extends AppCompatActivity {
+    private static final long NEW_ITEM = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_edit);
 
+        final Intent request = getIntent();
+        final Intent response = new Intent();
 
-        final Intent result = new Intent();
-        final long id = getIntent().getLongExtra("id",-1);
-        if(id==-1){
+        final long rowId = request.getLongExtra("rowId", NEW_ITEM);
+        if (rowId == NEW_ITEM) {
+            // In case that add button was pressed
             getSupportActionBar().setTitle(getResources().getString(R.string.title_activity_item_add));
+        } else {
+            response.putExtra("rowId", rowId);
+
+            final Bundle reqExtras = getIntent().getExtras();
+            ((EditText) findViewById(R.id.edtTitle)).setText(reqExtras.getString("title"));
+            final Date dueDate = (Date) reqExtras.getSerializable("dueDate");
+            if (dueDate != null) {
+                ((Button) findViewById(R.id.btnRemind)).setText(android.text.format.DateFormat.format("MM/dd/yy h:mmaa", dueDate.getTime()));
+                ((CheckBox) findViewById(R.id.checkRemind)).setChecked(true);
+                response.putExtra("dueDate", dueDate);
+            }
+            ((EditText) findViewById(R.id.edtDesc)).setText(reqExtras.getString("desc"));
+            ((EditText) findViewById(R.id.edtOwner)).setText(reqExtras.getString("owner"));
         }
-        else{
-            result.putExtra("id",id);
-        }
-        System.out.println("******************************************** update id: "+id);
 /*        TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
 
         tabHost.setup();
@@ -45,50 +60,47 @@ public class ItemEditActivity extends AppCompatActivity {
         tabSpec = tabHost.newTabSpec("setTime");
         tabSpec.setContent(R.id.tabSetTime);
         tabSpec.setIndicator("Set Time");
-        tabHost.addTab(tabSpec);todo remove*/
+        tabHost.addTab(tabSpec);todo copy to main activity*/
 
         final Button btnOK = (Button) findViewById(R.id.btnOK);
         btnOK.setOnClickListener(new View.OnClickListener() {
+
+            /**
+             * Sets all the extras from the corresponding fields.
+             *
+             * @param v current list item
+             */
             public void onClick(View v) {
                 String owner = ((EditText) findViewById(R.id.edtOwner)).getText().toString();
-                result.putExtra("owner", owner);
-                String title = ((EditText) findViewById(R.id.edtOwner)).getText().toString();
-                result.putExtra("title", title);
-                String desc = ((EditText) findViewById(R.id.edtOwner)).getText().toString();
-                result.putExtra("desc", desc);
-                if (!((CheckBox) findViewById(R.id.checkRemind)).isChecked()){
-                    result.removeExtra("dueDate");
+                response.putExtra("owner", owner);
+                String title = ((EditText) findViewById(R.id.edtTitle)).getText().toString();
+                response.putExtra("title", title);
+                String desc = ((EditText) findViewById(R.id.edtDesc)).getText().toString();
+                response.putExtra("desc", desc);
+                if (!((CheckBox) findViewById(R.id.checkRemind)).isChecked()) {
+                    // In case the extra was already set by the dialog
+                    response.removeExtra("dueDate");
                 }
-                /*DatePicker dp = (DatePicker) findViewById(R.id.datePicker);
-                TimePicker tp = (TimePicker) findViewById(R.id.timePicker);
-                Calendar cal = Calendar.getInstance();
-                cal.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(), tp.getCurrentHour(), tp.getCurrentMinute(), 0);
-                result.putExtra("dueDate", cal.getTime()); // send java.util.Date todo remove*/
-                setResult(RESULT_OK, result);
+                setResult(RESULT_OK, response);
                 finish();
             }
         });
-
-        final Button btnCancel = (Button) findViewById(R.id.btnCancel);
-        btnCancel.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                setResult(RESULT_CANCELED, result);
-                finish();
-            }
-        });
-
         final Button btnRemind = (Button) findViewById(R.id.btnRemind);
         btnRemind.setOnClickListener(new View.OnClickListener() {
+
+            /**
+             * Shows date-time picker and sets the dueDate extra.
+             *
+             * @param v current list item
+             */
             public void onClick(View v) {
                 SlideDateTimeListener listener = new SlideDateTimeListener() {
 
                     @Override
                     public void onDateTimeSet(Date date, long rowId) {
-                        /*todo  adapter.changeCursor(helper.update(id));adapter.notifyDataSetChanged();*/
-                        System.out.println("******************* Date set, id:" + rowId); // todo  remove
                         ((Button) findViewById(R.id.btnRemind)).setText(android.text.format.DateFormat.format("MM/dd/yy h:mmaa", date.getTime()));
                         ((CheckBox) findViewById(R.id.checkRemind)).setChecked(true);
-                        result.putExtra("dueDate", date);
+                        response.putExtra("dueDate", date);
                     }
 
                     @Override
@@ -101,6 +113,13 @@ public class ItemEditActivity extends AppCompatActivity {
                         .setInitialDate(new Date())
                         .build()
                         .show();
+            }
+        });
+        final Button btnCancel = (Button) findViewById(R.id.btnCancel);
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                setResult(RESULT_CANCELED, response);
+                finish();
             }
         });
     }

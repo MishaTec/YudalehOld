@@ -7,11 +7,14 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,9 +26,23 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseInstallation;
+import com.parse.ParsePush;
+import com.parse.SaveCallback;
+
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
+/**
+ * Todo:
+ *  - read DB onCreate - only query once!
+ *  - add push notification receiver
+ *  - prevent onCreate after add/edit
+ *  - add alarm cancel
+ */
 public class MainActivity extends AppCompatActivity {
     private static final int NEW_ITEM_REQUEST = 42;
     private static final int UPDATE_ITEM_REQUEST = 43;
@@ -46,8 +63,9 @@ public class MainActivity extends AppCompatActivity {
             LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             View view = inflater.inflate(R.layout.list_item, null);
 
-            TextView titleText = (TextView) view.findViewById(R.id.txtTitle);
             Cursor item = (Cursor) getItem(position);
+
+            TextView titleText = (TextView) view.findViewById(R.id.txtTitle);
             titleText.setText(item.getString(DBHelper.TITLE_COLUMN_INDEX));
             titleText.setTextColor(Color.BLACK);
 
@@ -71,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
         /**
          * Checks if the dueDate is before the current date and time
          *
-         * @param dueDate
+         * @param dueDate Date and Time object
          * @return true iff dueDate is before the current time
          */
         private boolean isOverdue(Date dueDate) {
@@ -86,9 +104,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Opens a dialog for adding a new to-do
-     *
-     * @return true
+     * Opens activity for adding new item
      */
     public void addNewItem() {
         Intent intent = new Intent(this, ItemEditActivity.class);
@@ -98,16 +114,21 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Opens a dialog for adding a new to-do
      *
-     * @param rowId
-     * @return true
+     * @param rowId the rowId field from the DB
+     * @param pos the actual index in the list (starts from 0)
      */
-    public void updateItem(long rowId) {
+    public void updateItem(long rowId,int pos) {
+        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&***************************** rowId="+rowId+", pos="+pos);
         Intent intent = new Intent(this, ItemEditActivity.class);
         intent.putExtra("rowId",rowId);
-/*
-        Bundle options = new Bundle();
-        options.putLong("rowId",rowId);
-*/
+        Cursor item = helper.getItem(rowId); // todo remove - inefficient
+//        Cursor item = (Cursor) adapter.getItem(pos);
+        intent.putExtra("title", item.getString(DBHelper.TITLE_COLUMN_INDEX));
+        if (!item.isNull(DBHelper.DUE_COLUMN_INDEX)) {
+            intent.putExtra("dueDate", new Date(item.getLong(DBHelper.DUE_COLUMN_INDEX)));
+        }
+        intent.putExtra("desc", item.getString(DBHelper.DESCRIPTION_COLUMN_INDEX));
+        intent.putExtra("owner", item.getString(DBHelper.OWNER_COLUMN_INDEX));
         startActivityForResult(intent, UPDATE_ITEM_REQUEST);
     }
 
@@ -116,59 +137,60 @@ public class MainActivity extends AppCompatActivity {
         if (resCode != Activity.RESULT_OK){
             return;
         }
-        if (reqCode == NEW_ITEM_REQUEST) {
-            // Add the item to DB
+        if (reqCode == NEW_ITEM_REQUEST) { // Add the item to DB
             String title = data.getStringExtra("title");
             Date dueDate = (Date) data.getSerializableExtra("dueDate");
+            String desc = data.getStringExtra("desc");
+            String owner = data.getStringExtra("owner");
             if (!title.equals("")) {
-                helper.insert(title, dueDate);
+                long newRowId = helper.insert(title, dueDate,desc,owner);
                 adapter.changeCursor(helper.getCursor());
                 adapter.notifyDataSetChanged();
                 if (dueDate != null) {
-                    setAlarm(1, dueDate.getTime());
+                    setAlarm(newRowId, dueDate.getTime()); //fixme
                 }
             }
         }
-        if (reqCode == UPDATE_ITEM_REQUEST) {
-            // Update the item in DB
-            long id = data.getLongExtra("id",NO_ID_PASSED);
+        if (reqCode == UPDATE_ITEM_REQUEST) { // Update the item in DB
+            long rowId = data.getLongExtra("rowId",NO_ID_PASSED);
             String title = data.getStringExtra("title");
             Date dueDate = (Date) data.getSerializableExtra("dueDate");
+            String desc = data.getStringExtra("desc");
+            String owner = data.getStringExtra("owner");
             if (!title.equals("")) {
-                helper.update(id, title, dueDate);
+                helper.update(rowId,title, dueDate,desc,owner);
                 adapter.changeCursor(helper.getCursor());
                 adapter.notifyDataSetChanged();
                 if (dueDate != null) {
-                    setAlarm(1, dueDate.getTime());
+                    setAlarm(rowId, dueDate.getTime());
+                }
+                else{
+                    // todo cancel alarm
                 }
             }
-            System.out.println(id);
         }
     }
 
     /**
-     * Sets a new notification alarm
+     * Sets a new notification alarm.
      *
-     * @param alarmId           - must be unique
-     * @param timeInMillis - should be from calendar
+     * @param alarmId must be unique todo use rowId
+     * @param timeInMillis should be from calendar
      */
-    private void setAlarm(int alarmId, long timeInMillis) {
+    private void setAlarm(long alarmId, long timeInMillis) {
         Intent alertIntent = new Intent(this, DueDateAlarm.class);
         alertIntent.setData(Uri.parse("timer:" + alarmId));
 
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(timeInMillis);
-
         AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-        am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), PendingIntent.getBroadcast(
-                this, 1, alertIntent, PendingIntent.FLAG_UPDATE_CURRENT));
+        am.set(AlarmManager.RTC_WAKEUP, timeInMillis, PendingIntent.getBroadcast(
+                this, 1, alertIntent, PendingIntent.FLAG_UPDATE_CURRENT)); // todo 1?
 
         Toast.makeText(
                 this,
-                "Reminders added to the calendar successfully for "
+                "Reminders  "+ alarmId+ " at "
                         + android.text.format.DateFormat.format(
                         "MM/dd/yy h:mmaa",
-                        cal.getTimeInMillis()),
+                        timeInMillis),
                 Toast.LENGTH_LONG).show(); // todo remove
     }
 
@@ -177,6 +199,37 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = preferences.edit();
+        int i = preferences.getInt("numberoflaunches", 1);
+        if (i < 2) {
+            // todo
+            // This will be run only at first launch:
+            Parse.initialize(this, "1wOBsSzT94l7KHNBFfofmIg0VvpAVVO2o9K7GXoF", "M6unV2mvfdN7e24AnoJ9GTE67YjWTf0jZI7Ky3LZ");
+//        PushService.setDefaultPuchCallback(this, MainActivity.class); fixme
+            ParseInstallation.getCurrentInstallation().saveInBackground();
+            ParsePush.subscribeInBackground("", new SaveCallback() {
+                @Override
+                public void done(ParseException e) {
+                    if (e == null) {
+                        Log.d("com.parse.push", "successfully subscribed to the broadcast channel.");
+                        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+                        System.out.println("subscribed");
+                    } else {
+                        Log.e("com.parse.push", "failed to subscribe for push", e);
+                        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+                        System.out.println(e.getMessage());
+                    }
+                }
+            });
+
+            i++;
+            editor.putInt("numberoflaunches", i);
+            editor.commit();
+        }
+
+
+        // todo run only once all following?
         helper = new DBHelper(this);
 
         ListView todoList = (ListView) findViewById(R.id.lstTodoItems);
@@ -188,13 +241,14 @@ public class MainActivity extends AppCompatActivity {
 
         todoList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> av, View v, int pos, final long id) { // id = pos + 1
+            public boolean onItemLongClick(AdapterView<?> av, View v, final int pos, final long rowId) { // rowId = pos + 1
                 final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 String title = ((TextView) v.findViewById(R.id.txtTitle)).getText().toString();
                 builder.setMessage(title);
                 builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        adapter.changeCursor(helper.delete(id));
+                        helper.delete(rowId);
+                        adapter.changeCursor(helper.getCursor());
                         adapter.notifyDataSetChanged();
                     }
                 });
@@ -209,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 builder.setNeutralButton("Edit", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        updateItem(id);
+                        updateItem(rowId,pos);
                     }
                 });
                 builder.show();
@@ -232,7 +286,6 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.menuItemAdd) {
             addNewItem();
             return true;

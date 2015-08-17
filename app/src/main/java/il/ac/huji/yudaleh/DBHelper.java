@@ -19,13 +19,19 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String KEY_ROWID = "_id";
     private static final String KEY_TITLE = "title";
     private static final String KEY_DUE = "due";
+    private static final String KEY_DESCRIPTION = "desc";
+    private static final String KEY_OWNER = "owner";
     private static final String LIST_TABLE_CREATE =
             "create table " + LIST_TABLE_NAME + " ( " +
                     KEY_ROWID + " integer primary key autoincrement, " +
                     KEY_TITLE+" text, " +
-                    KEY_DUE+" long );";
+                    KEY_DUE+" long, "+
+                    KEY_DESCRIPTION+" text," +
+                    KEY_OWNER +" text );";
     public static final int TITLE_COLUMN_INDEX = 1;
     public static final int DUE_COLUMN_INDEX = 2;
+    public static final int DESCRIPTION_COLUMN_INDEX = 3;
+    public static final int OWNER_COLUMN_INDEX = 4;
 
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -37,11 +43,12 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public void onUpgrade(
             SQLiteDatabase db, int oldVer, int newVer) {
+        //todo
     }
 
     /**
      * Helper method. Returns an updated cursor to the db.
-     *
+     *  TODO use sparsely
      * @return the new cursor
      */
     public Cursor getCursor() {
@@ -52,11 +59,11 @@ public class DBHelper extends SQLiteOpenHelper {
     /**
      * Inserts a new item to the db
      *
-     * @param title - item's content
-     * @param dueDate - item's due date
-     * @return the new cursor
+     * @param title item's content
+     * @param dueDate item's due date
+     * @return the rowId of the created item
      */
-    public Cursor insert(String title, Date dueDate) {
+    public long insert(String title, Date dueDate, String desc, String owner) {
         ContentValues newItem = new ContentValues();
         newItem.put(KEY_TITLE, title);
         if (dueDate != null) {
@@ -64,33 +71,50 @@ public class DBHelper extends SQLiteOpenHelper {
         } else {
             newItem.putNull(KEY_DUE);
         }
-        getWritableDatabase().insert(LIST_TABLE_NAME, null, newItem);
-        return getCursor();
+        newItem.put(KEY_DESCRIPTION, desc);
+        newItem.put(KEY_OWNER, owner);
+        return getWritableDatabase().insert(LIST_TABLE_NAME, null, newItem);
     }
 
     /**
      * Updates an item with the given id
      *
-     * @param title - item's content
-     * @param dueDate - item's due date
-     * @return the new cursor
+     * @param title item's content
+     * @param dueDate item's due date
      */
-    public Cursor update(long rowId, String title, Date dueDate) {
+    public void update(long rowId, String title, Date dueDate, String desc, String owner) {
         ContentValues newItem = new ContentValues();
         newItem.put(KEY_TITLE, title);
-        newItem.put(KEY_DUE, dueDate.getTime());
+        if (dueDate != null) {
+            newItem.put(KEY_DUE, dueDate.getTime());
+        } else {
+            newItem.putNull(KEY_DUE);
+        }
+        newItem.put(KEY_DESCRIPTION, desc);
+        newItem.put(KEY_OWNER, owner);
         getWritableDatabase().update(LIST_TABLE_NAME, newItem, KEY_ROWID + "=" + rowId, null);
-        return getCursor();
     }
 
     /**
      * Deletes an item with the given id
      *
-     * @param rowId - the index of the row
-     * @return the new cursor
+     * @param rowId the index of the row
      */
-    public Cursor delete(long rowId) {
+    public void delete(long rowId) {
         getWritableDatabase().delete(LIST_TABLE_NAME, KEY_ROWID + "=" + rowId, null);
-        return getCursor();
+    }
+
+    /**
+     * TODO don't use
+     * @param rowId the index of the row
+     * @return a cursor pointing to the requested item
+     */
+    public Cursor getItem(long rowId) {
+        Cursor mCursor = getWritableDatabase().query(true, LIST_TABLE_NAME, null, KEY_ROWID + "=" + rowId,
+                null, null, null, null, null);
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+        }
+        return mCursor;
     }
 }

@@ -13,27 +13,31 @@ import android.net.Uri;
  * Accepts alarms on the due date of the debt
  */
 public class DueDateAlarm extends BroadcastReceiver {
+    final static int DEFAULT_ALARM_ID = 0;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         // Raise the notification about his debt
-        Integer.parseInt(intent.getData().getSchemeSpecificPart());
         Uri intentData = intent.getData();
-        int id;
+        long alarmId;
         if (intentData == null) {
-            id = 1;
-            System.out.println("NULL **************************");
+            alarmId = DEFAULT_ALARM_ID;
         } else {
-            id = Integer.parseInt(intentData.getSchemeSpecificPart());
-            System.out.println("***** NOT_NULL **************************");
+            alarmId = Integer.parseInt(intentData.getSchemeSpecificPart());
         }
-        createNotification(context, "Debt return", "Time to return the debt", "Alert", id);
-//        Toast.makeText(context, "Alarm" + intent.getData().getSchemeSpecificPart() + " fires!!!! YEAH", Toast.LENGTH_LONG).show();
-        System.out.println("id = " + id);
-//        createNotification(context, "Debt return", "Time to return the debt", "Alert",2);
+        createNotification(context, "Debt return " + alarmId, "Time to return the debt", "Alert", alarmId);
     }
 
-    public void createNotification(Context context, String title, String text, String alert, int id) {
+    /**
+     * Creates and shows notification to the user.
+     *
+     * @param context app context for the intent
+     * @param title   short content
+     * @param text    few more details
+     * @param alert   shows on the top bar for one second
+     * @param alarmId must be unique
+     */
+    public void createNotification(Context context, String title, String text, String alert, long alarmId) {
         PendingIntent notificationIntent = PendingIntent.getActivity(context, 0,
                 new Intent(context, MainActivity.class), 0);
         Notification notification = new Notification.Builder(context)
@@ -43,12 +47,10 @@ public class DueDateAlarm extends BroadcastReceiver {
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setContentIntent(notificationIntent)
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                .addAction(0, "Call ...", notificationIntent) //todo phone
+                .addAction(0, "Call ...", notificationIntent) //todo contact's phone
                 .build();
         NotificationManager mNotificationManager = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-
-//        Toast.makeText(context, "Alarm" + id + " fires!!!! YEAH", Toast.LENGTH_LONG).show();
-        mNotificationManager.notify(id, notification);
+        mNotificationManager.notify((int) alarmId, notification); //todo check int cast, make unique
     }
 }
