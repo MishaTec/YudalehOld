@@ -35,7 +35,7 @@ import com.parse.SaveCallback;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-
+//16:29 mic
 /**
  * Todo:
  * - read DB onCreate - only query once!
