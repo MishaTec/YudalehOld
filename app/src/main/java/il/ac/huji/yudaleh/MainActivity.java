@@ -38,10 +38,11 @@ import java.util.Date;
 
 /**
  * Todo:
- *  - read DB onCreate - only query once!
- *  - add push notification receiver
- *  - prevent onCreate after add/edit
- *  - add alarm cancel
+ * - read DB onCreate - only query once!
+ * - add push notification receiver
+ * - prevent onCreate after add/edit
+ * - add alarm cancel
+ * - parse broadcast receiver nullpointerexception
  */
 public class MainActivity extends AppCompatActivity {
     private static final int NEW_ITEM_REQUEST = 42;
@@ -115,12 +116,12 @@ public class MainActivity extends AppCompatActivity {
      * Opens a dialog for adding a new to-do
      *
      * @param rowId the rowId field from the DB
-     * @param pos the actual index in the list (starts from 0)
+     * @param pos   the actual index in the list (starts from 0)
      */
-    public void updateItem(long rowId,int pos) {
-        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&***************************** rowId="+rowId+", pos="+pos);
+    public void updateItem(long rowId, int pos) {
+        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&***************************** rowId=" + rowId + ", pos=" + pos);
         Intent intent = new Intent(this, ItemEditActivity.class);
-        intent.putExtra("rowId",rowId);
+        intent.putExtra("rowId", rowId);
         Cursor item = helper.getItem(rowId); // todo remove - inefficient
 //        Cursor item = (Cursor) adapter.getItem(pos);
         intent.putExtra("title", item.getString(DBHelper.TITLE_COLUMN_INDEX));
@@ -134,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int reqCode, int resCode, Intent data) {
-        if (resCode != Activity.RESULT_OK){
+        if (resCode != Activity.RESULT_OK) {
             return;
         }
         if (reqCode == NEW_ITEM_REQUEST) { // Add the item to DB
@@ -143,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
             String desc = data.getStringExtra("desc");
             String owner = data.getStringExtra("owner");
             if (!title.equals("")) {
-                long newRowId = helper.insert(title, dueDate,desc,owner);
+                long newRowId = helper.insert(title, dueDate, desc, owner);
                 adapter.changeCursor(helper.getCursor());
                 adapter.notifyDataSetChanged();
                 if (dueDate != null) {
@@ -152,20 +153,19 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (reqCode == UPDATE_ITEM_REQUEST) { // Update the item in DB
-            long rowId = data.getLongExtra("rowId",NO_ID_PASSED);
+            long rowId = data.getLongExtra("rowId", NO_ID_PASSED);
             String title = data.getStringExtra("title");
             Date dueDate = (Date) data.getSerializableExtra("dueDate");
             String desc = data.getStringExtra("desc");
             String owner = data.getStringExtra("owner");
             if (!title.equals("")) {
-                helper.update(rowId,title, dueDate,desc,owner);
+                helper.update(rowId, title, dueDate, desc, owner);
                 adapter.changeCursor(helper.getCursor());
                 adapter.notifyDataSetChanged();
                 if (dueDate != null) {
                     setAlarm(rowId, dueDate.getTime());
-                }
-                else{
-                    // todo cancel alarm
+                } else {
+                    cancelAlarm(rowId);
                 }
             }
         }
@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Sets a new notification alarm.
      *
-     * @param alarmId must be unique todo use rowId
+     * @param alarmId      must be unique
      * @param timeInMillis should be from calendar
      */
     private void setAlarm(long alarmId, long timeInMillis) {
@@ -183,15 +183,30 @@ public class MainActivity extends AppCompatActivity {
 
         AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
         am.set(AlarmManager.RTC_WAKEUP, timeInMillis, PendingIntent.getBroadcast(
-                this, 1, alertIntent, PendingIntent.FLAG_UPDATE_CURRENT)); // todo 1?
+                this, (int) alarmId, alertIntent, PendingIntent.FLAG_UPDATE_CURRENT)); // todo 1?
 
         Toast.makeText(
                 this,
-                "Reminders  "+ alarmId+ " at "
+                "Reminder  " + alarmId + " at "
                         + android.text.format.DateFormat.format(
                         "MM/dd/yy h:mmaa",
                         timeInMillis),
                 Toast.LENGTH_LONG).show(); // todo remove
+    }
+
+    /**
+     * Cancels notification alarm.
+     *
+     * @param alarmId must be unique
+     */
+    private void cancelAlarm(long alarmId) {
+        Intent alertIntent = new Intent(this, DueDateAlarm.class);
+        alertIntent.setData(Uri.parse("timer:" + alarmId));
+
+        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+        am.cancel(PendingIntent.getBroadcast(this, (int) alarmId, alertIntent, PendingIntent.FLAG_UPDATE_CURRENT)); // todo 1?
+
+        Toast.makeText(this, "REMOVED Reminder  " + alarmId, Toast.LENGTH_LONG).show(); // todo remove
     }
 
     @Override
@@ -213,11 +228,11 @@ public class MainActivity extends AppCompatActivity {
                 public void done(ParseException e) {
                     if (e == null) {
                         Log.d("com.parse.push", "successfully subscribed to the broadcast channel.");
-                        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+                        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& parse:");
                         System.out.println("subscribed");
                     } else {
                         Log.e("com.parse.push", "failed to subscribe for push", e);
-                        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&");
+                        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& parse:");
                         System.out.println(e.getMessage());
                     }
                 }
@@ -250,6 +265,7 @@ public class MainActivity extends AppCompatActivity {
                         helper.delete(rowId);
                         adapter.changeCursor(helper.getCursor());
                         adapter.notifyDataSetChanged();
+                        cancelAlarm(rowId);
                     }
                 });
                 if (title.toLowerCase().matches("call\\s[^\\s]+.*")) { // starts with 'call'
@@ -263,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 builder.setNeutralButton("Edit", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
-                        updateItem(rowId,pos);
+                        updateItem(rowId, pos);
                     }
                 });
                 builder.show();

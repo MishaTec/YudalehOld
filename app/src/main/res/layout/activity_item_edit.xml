@@ -32,7 +32,8 @@
             android:id="@+id/edtDesc"
             android:layout_weight="1"
             android:hint="Debt description"
-            android:gravity="top" />
+            android:gravity="top"
+            android:singleLine="false" />
 
         <LinearLayout
             android:orientation="horizontal"

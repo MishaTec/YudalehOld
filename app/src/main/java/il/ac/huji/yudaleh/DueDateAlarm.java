@@ -48,6 +48,7 @@ public class DueDateAlarm extends BroadcastReceiver {
                 .setContentIntent(notificationIntent)
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                 .addAction(0, "Call ...", notificationIntent) //todo contact's phone
+                .setAutoCancel(true)
                 .build();
         NotificationManager mNotificationManager = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
