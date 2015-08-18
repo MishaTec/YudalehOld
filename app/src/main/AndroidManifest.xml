@@ -55,14 +55,14 @@
             </intent-filter>
         </receiver>
         <!--<receiver android:name="com.parse.ParsePushBroadcastReceiver"-->
-        <receiver android:name=".MyPushReceiver"
+<!--        <receiver android:name=".MyPushReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.parse.push.intent.RECEIVE" />
                 <action android:name="com.parse.push.intent.DELETE" />
                 <action android:name="com.parse.push.intent.OPEN" />
             </intent-filter>
-        </receiver>
+        </receiver>-->
         <receiver android:name="com.parse.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>

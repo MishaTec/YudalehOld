@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,13 +25,6 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.parse.Parse;
-import com.parse.ParseException;
-import com.parse.ParseInstallation;
-import com.parse.ParsePush;
-import com.parse.SaveCallback;
-
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -49,14 +41,14 @@ public class MainActivity extends AppCompatActivity {
     private static final int NEW_ITEM_REQUEST = 42;
     private static final int UPDATE_ITEM_REQUEST = 43;
     private static final long NO_ID_PASSED = -22;
-    private TodoListAdapter adapter;
+    private ListAdapter adapter;
     private DBHelper helper;
 
     /**
      * Inner class: cursor adapter between the database and the to-do list
      */
-    private class TodoListAdapter extends SimpleCursorAdapter {
-        public TodoListAdapter(Context context, int layout, Cursor c, String[] from, int[] to, int flags) {
+    private class ListAdapter extends SimpleCursorAdapter {
+        public ListAdapter(Context context, int layout, Cursor c, String[] from, int[] to, int flags) {
             super(context, layout, c, from, to, flags);
         }
 
@@ -259,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
         ListView todoList = (ListView) findViewById(R.id.lstTodoItems);
         String[] from = new String[]{"title","owner", "due"};
         int[] to = new int[]{R.id.txtTitle, R.id.txtOwner, R.id.txtTodoDueDate};
-        adapter = new TodoListAdapter(this, R.layout.list_item, helper.getCursor(), from, to,
+        adapter = new ListAdapter(this, R.layout.list_item, helper.getCursor(), from, to,
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
         todoList.setAdapter(adapter);
 
@@ -272,7 +264,6 @@ public class MainActivity extends AppCompatActivity {
         todoList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> av, View v, final int pos, final long rowId) { // rowId = pos + 1
-                updateItem(rowId, pos);
                 final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 String title = ((TextView) v.findViewById(R.id.txtTitle)).getText().toString();
                 String owner = ((TextView) v.findViewById(R.id.txtOwner)).getText().toString();

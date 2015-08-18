@@ -25,7 +25,7 @@ public class DueDateAlarm extends BroadcastReceiver {
         } else {
             alarmId = Integer.parseInt(intentData.getSchemeSpecificPart());
         }
-        createNotification(context, "Debt return " + alarmId, "Time to return the debt", "Alert", alarmId);
+        createNotification(context, "Debt "+intent.getStringExtra("title")+ " to "+intent.getStringExtra("owner") + alarmId, "Time to return the debt", "Alert", alarmId);
     }
 
     /**
@@ -52,6 +52,6 @@ public class DueDateAlarm extends BroadcastReceiver {
                 .build();
         NotificationManager mNotificationManager = (NotificationManager) context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify((int) alarmId, notification); //todo check int cast, make unique
+        mNotificationManager.notify((int) -alarmId, notification); //todo check int cast, make unique
     }
 }
