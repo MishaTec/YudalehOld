@@ -29,10 +29,14 @@ public class ItemEditActivity extends AppCompatActivity {
 
         final Intent request = getIntent();
         final Intent response = new Intent();
-
         final long rowId = request.getLongExtra("rowId", NEW_ITEM);
+
+        // Redirect table name
+        response.putExtra("table", request.getStringExtra("table"));
+
         if (rowId == NEW_ITEM) {
             // In case that add button was pressed
+            //noinspection ConstantConditions
             getSupportActionBar().setTitle(getResources().getString(R.string.title_activity_item_add));
         } else {
             response.putExtra("rowId", rowId);
@@ -48,19 +52,6 @@ public class ItemEditActivity extends AppCompatActivity {
             ((EditText) findViewById(R.id.edtDesc)).setText(reqExtras.getString("desc"));
             ((EditText) findViewById(R.id.edtOwner)).setText(reqExtras.getString("owner"));
         }
-/*        TabHost tabHost = (TabHost) findViewById(R.id.tabHost);
-
-        tabHost.setup();
-
-        TabHost.TabSpec tabSpec = tabHost.newTabSpec("setDate");
-        tabSpec.setContent(R.id.tabSetDate);
-        tabSpec.setIndicator("Set Date");
-        tabHost.addTab(tabSpec);
-
-        tabSpec = tabHost.newTabSpec("setTime");
-        tabSpec.setContent(R.id.tabSetTime);
-        tabSpec.setIndicator("Set Time");
-        tabHost.addTab(tabSpec);todo copy to main activity*/
 
         final Button btnOK = (Button) findViewById(R.id.btnOK);
         btnOK.setOnClickListener(new View.OnClickListener() {
@@ -96,6 +87,7 @@ public class ItemEditActivity extends AppCompatActivity {
             public void onClick(View v) {
                 SlideDateTimeListener listener = new SlideDateTimeListener() {
 
+                    @SuppressWarnings("deprecation")
                     @Override
                     public void onDateTimeSet(Date date, long rowId) {
                         date.setSeconds(0);

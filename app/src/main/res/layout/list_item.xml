@@ -33,7 +33,7 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="dd/MM/yyyy"
-        android:id="@+id/txtTodoDueDate"
+        android:id="@+id/txtDueDate"
         android:textAlignment="gravity"
         android:textStyle="italic"
         android:gravity="right"

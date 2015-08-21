@@ -1,60 +1,71 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".AddNewItemDialog"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context=".AddNewItemDialog">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="1"
+        android:orientation="vertical"
         android:weightSum="1">
 
         <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:id="@+id/edtOwner"
-            android:autoText="false"
-            android:hint="Owner&apos;s name" />
-
-        <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:hint="Owner"
+            android:singleLine="true"
+            android:nextFocusDown="@+id/edtTitle">
+
+            <requestFocus />
+        </EditText>
+
+        <EditText
             android:id="@+id/edtTitle"
-            android:hint="Debt title" />
-
-        <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="textMultiLine"
-            android:ems="10"
+            android:hint="Title"
+            android:singleLine="true"
+            android:nextFocusDown="@+id/btnOK" />
+
+        <EditText
             android:id="@+id/edtDesc"
-            android:layout_weight="1"
-            android:hint="Debt description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
             android:gravity="top"
-            android:singleLine="false" />
+            android:hint="Description"
+            android:singleLine="true"
+            android:imeOptions="actionDone"/>
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:layout_weight="1"
+            android:gravity="bottom">
 
             <CheckBox
+                android:id="@+id/checkRemind"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reminder"
-                android:id="@+id/checkRemind"
+                android:layout_weight="1"
                 android:checked="false"
-                android:layout_weight="1" />
+                android:text="Reminder" />
 
             <Button
+                android:id="@+id/btnRemind"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Set reminder"
-                android:id="@+id/btnRemind"
-                android:layout_weight="5" />
+                android:layout_weight="5"
 
+                android:text="Set reminder" />
+            <!--android:imeOptions="actionNext"-->
+            <!--android:nextFocusForward="@+id/btnOK"-->
         </LinearLayout>
 
     </LinearLayout>
@@ -68,7 +79,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnCancel"
