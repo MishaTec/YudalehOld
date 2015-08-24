@@ -78,9 +78,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            if (convertView == null) {
+//            if (convertView == null) {
                 convertView = inflater.inflate(R.layout.list_item, null);
-            }
+//            }
             Cursor item = (Cursor) getItem(position);
 
             TextView titleText = (TextView) convertView.findViewById(R.id.txtTitle);
