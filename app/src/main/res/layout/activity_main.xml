@@ -8,6 +8,22 @@
     android:orientation="vertical"
     android:gravity="top">
 
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:id="@+id/btnLogout"
+        android:layout_gravity="right" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="Guest mode"
+        android:id="@+id/txtUser"
+        android:layout_gravity="right" />
+
     <TabHost
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

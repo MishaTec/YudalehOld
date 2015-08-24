@@ -2,9 +2,15 @@
     <string name="app_name">Yudaleh</string>
 
     <string name="add_item">Add</string>
+    <string name="login">Login</string>
+    <string name="logout">Logout</string>
     <string name="title_activity_item_edit">Edit debt</string>
     <string name="title_activity_item_add">Add new debt</string>
     <string name="button_cancel">Cancel</string>
     <string name="button_ok">OK</string>
+    <string name="title_activity_login_signup">LoginSignupActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 
 </resources>

@@ -3,4 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".TodoListManagerActivity">
     <item android:id="@+id/menuItemAdd" android:title="@string/add_item"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/menuLogin" android:title="@string/login"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/menuLogout" android:title="@string/logout"
+        android:orderInCategory="100" app:showAsAction="never" />
 </menu>
