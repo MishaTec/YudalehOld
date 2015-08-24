@@ -78,9 +78,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             LayoutInflater inflater = (LayoutInflater) getApplicationContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-//            if (convertView == null) {
+            if (convertView == null) {
                 convertView = inflater.inflate(R.layout.list_item, null);
-//            }
+            }
+
             Cursor item = (Cursor) getItem(position);
 
             TextView titleText = (TextView) convertView.findViewById(R.id.txtTitle);
@@ -308,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        System.out.println("/////////////////////////////////////////////////////// create  "+(savedInstanceState==null?"null":"NOT null"));
 /*        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this); // TODO: 20/08/2015 remove
         SharedPreferences.Editor editor = preferences.edit();
         int i = preferences.getInt("numberoflaunches", 1);

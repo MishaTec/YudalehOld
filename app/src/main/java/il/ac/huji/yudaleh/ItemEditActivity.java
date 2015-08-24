@@ -10,10 +10,11 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
+import com.github.jjobes.slidedatetimepicker.SlideDateTimeListener;
+import com.github.jjobes.slidedatetimepicker.SlideDateTimePicker;
+
 import java.util.Date;
 
-//import il.ac.huji.yudaleh.dateTimePicker.SlideDateTimeListener;
-//import il.ac.huji.yudaleh.dateTimePicker.SlideDateTimePicker;
 
 /**
  * Activity for adding new items and editing exiting,
@@ -85,11 +86,11 @@ public class ItemEditActivity extends AppCompatActivity {
              * @param v current list item
              */
             public void onClick(View v) {
-/*                SlideDateTimeListener listener = new SlideDateTimeListener() {
+                SlideDateTimeListener listener = new SlideDateTimeListener() {
 
                     @SuppressWarnings("deprecation")
                     @Override
-                    public void onDateTimeSet(Date date, long rowId) {
+                    public void onDateTimeSet(Date date) {
                         date.setSeconds(0);
                         ((Button) findViewById(R.id.btnRemind)).setText(android.text.format.DateFormat.format("MM/dd/yy h:mmaa", date.getTime()));
                         ((CheckBox) findViewById(R.id.checkRemind)).setChecked(true);
@@ -105,7 +106,7 @@ public class ItemEditActivity extends AppCompatActivity {
                         .setListener(listener)
                         .setInitialDate(new Date())
                         .build()
-                        .show();*/
+                        .show();
             }
         });
         final Button btnCancel = (Button) findViewById(R.id.btnCancel);
