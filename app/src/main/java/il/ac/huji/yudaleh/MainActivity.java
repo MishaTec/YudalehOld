@@ -50,7 +50,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String OWE_ME_TAB_TAG = "oweMe";
 
     private static final int MENU_ADD = Menu.FIRST;
-    private static final int MENU_LOGOUT = Menu.FIRST  +1;
+    private static final int MENU_LOGOUT = Menu.FIRST + 1;
+    private static final int MENU_LOGIN = Menu.FIRST + 2;
 
     private ListAdapter iOweAdapter;
     private ListAdapter oweMeAdapter;
@@ -187,11 +188,8 @@ public class MainActivity extends AppCompatActivity {
         ListAdapter adapter;
         if (table.equals(DBHelper.OWE_ME_TABLE)) {
             adapter = oweMeAdapter;
-            System.out.println("################################################################ ++ " + adapter.table);
         } else {
             adapter = iOweAdapter;
-            System.out.println("################################################################ i owe++ " + adapter.table);
-
         }
 
         if (reqCode == NEW_ITEM_REQUEST) { // Add the item to DB
@@ -199,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
                 long newRowId = helper.insert(table, title, dueDate, desc, owner);
                 adapter.changeCursor(helper.getCursor(table));
                 adapter.notifyDataSetChanged();
-                System.out.println("################################################################ " + adapter.table);
                 if (table.equals(DBHelper.OWE_ME_TABLE)) {
                     newRowId = -newRowId;
                 }
@@ -230,9 +227,9 @@ public class MainActivity extends AppCompatActivity {
      * Sets a new notification alarm.
      *
      * @param alarmId must be unique
-     * @param title debt title
+     * @param title   debt title
      * @param dueDate debt due date
-     * @param owner debt owner
+     * @param owner   debt owner
      */
     private void setAlarm(long alarmId, String title, Date dueDate, String owner) {
         long timeInMillis = dueDate.getTime();
@@ -266,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
         AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
         am.cancel(PendingIntent.getBroadcast(this, (int) alarmId, alertIntent, PendingIntent.FLAG_UPDATE_CURRENT));
 
-        Toast.makeText(this, "REMOVED Reminder  " + alarmId, Toast.LENGTH_LONG).show(); // todo remove
+        Toast.makeText(this, "REMOVED Reminder " + alarmId, Toast.LENGTH_LONG).show(); // todo remove
     }
 
     /**
@@ -318,55 +315,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-        if(ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
-
-/*            Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
-            startActivity(intent);
-            finish();*/
-
-            Toast.makeText(getApplicationContext(),
-                    "anonymous",
-                    Toast.LENGTH_SHORT).show();
-
-        } else {
-
-            ParseUser currentUser = ParseUser.getCurrentUser();
-
-            if(currentUser != null) {
-/*
-                Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                startActivity(intent);
-                finish();*/
-//                ParseUser currentUser = ParseUser.getCurrentUser();
-
-                String struser = currentUser.getUsername().toString();
-
-                TextView txtUser = (TextView) findViewById(R.id.txtUser);
-                txtUser.setText("You are logged in as " + struser);
-
-                Button logout = (Button) findViewById(R.id.btnLogout);
-
-                logout.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        ParseUser.logOut();
-                        finish();
-                    }
-                });
-            } else {
-
-                Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
-                startActivity(intent);
-                finish();
-
-            }
-
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if (currentUser != null && !ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
+            String struser = currentUser.getUsername().toString();
+            TextView txtUser = (TextView) findViewById(R.id.txtUser);
+            txtUser.setText("You are logged in as " + struser);
         }
 
         // TODO: 24/08/15 put in welcome screen
-
 /*        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this); // TODO: 20/08/2015 remove
         SharedPreferences.Editor editor = preferences.edit();
         int i = preferences.getInt("numberoflaunches", 1);
@@ -413,9 +369,13 @@ public class MainActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
+        menu.add(0, MENU_ADD, Menu.NONE, R.string.add_item).setIcon(R.drawable.ic_launcher);
+
         ParseUser currentUser = ParseUser.getCurrentUser();
-        if(currentUser != null) {
-            menu.add(0, MENU_LOGOUT, Menu.NONE, R.string.logout).setIcon(R.drawable.ic_launcher);
+        if (currentUser == null || ParseAnonymousUtils.isLinked(currentUser)) {
+            menu.add(1, MENU_LOGIN, Menu.NONE, R.string.login).setIcon(R.drawable.ic_launcher);
+        } else {
+            menu.add(1, MENU_LOGOUT, Menu.NONE, R.string.logout).setIcon(R.drawable.ic_launcher);
         }
         return true;
     }
@@ -451,10 +411,24 @@ public class MainActivity extends AppCompatActivity {
 //            finish();
             return true;
         }*/
-        switch (item.getItemId()) {
+        switch (id) {
             case MENU_LOGOUT:
                 ParseUser.logOut();
-                finish();
+                recreate();
+                break;
+            case MENU_LOGIN:
+                Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
+                startActivity(intent);
+                finish();//todo?
+                break;
+            case MENU_ADD:
+                String table;
+                if (tabHost.getCurrentTabTag().equals(I_OWE_TAB_TAG)) {
+                    table = DBHelper.I_OWE_TABLE;
+                } else {
+                    table = DBHelper.OWE_ME_TABLE;
+                }
+                addNewItem(table);
                 break;
         }
         return super.onOptionsItemSelected(item);

@@ -30,7 +30,6 @@ public class LoginSignupActivity extends AppCompatActivity {
 
         username = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
-
         loginButton = (Button) findViewById(R.id.login);
         signupButton = (Button) findViewById(R.id.signup);
 
@@ -38,49 +37,39 @@ public class LoginSignupActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                usernametxt = username.getText().toString();
-                passwordtxt = password.getText().toString();
+                usernametxt = username.getText().toString().trim();
+                passwordtxt = password.getText().toString().trim();
 
                 ParseUser.logInInBackground(usernametxt, passwordtxt,
                         new LogInCallback() {
-
                             @Override
                             public void done(ParseUser user, ParseException e) {
                                 if (user != null) {
-
                                     Intent intent = new Intent(
                                             LoginSignupActivity.this,
                                             MainActivity.class);
                                     startActivity(intent);
                                     finish();
-
                                 } else {
-
                                     Toast.makeText(
                                             getApplicationContext(),
-                                            "This user doesn't exist. Please signup",
+                                            "Wrong username or password. Try again.",
                                             Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
             }
         });
-
         signupButton.setOnClickListener(new OnClickListener() {
-
             @Override
             public void onClick(View v) {
-                usernametxt = username.getText().toString();
-                passwordtxt = password.getText().toString();
-
-                if (usernametxt.equals("") && passwordtxt.equals("")) {
-
+                usernametxt = username.getText().toString().trim();
+                passwordtxt = password.getText().toString().trim();
+                if (usernametxt.equals("") || passwordtxt.equals("")) {
                     Toast.makeText(getApplicationContext(),
-                            "Please complete the sign up form",
+                            "All fields must be complete.",
                             Toast.LENGTH_SHORT).show();
-
                 } else {
-
                     ParseUser user = new ParseUser();
                     user.setUsername(usernametxt);
                     user.setPassword(passwordtxt);
@@ -89,21 +78,16 @@ public class LoginSignupActivity extends AppCompatActivity {
                         @Override
                         public void done(ParseException e) {
                             if (e == null) {
-
                                 Toast.makeText(getApplicationContext(),
                                         "Successfully Signed up!",
                                         Toast.LENGTH_SHORT).show();
-
                             } else {
-
                                 Toast.makeText(getApplicationContext(),
-                                        "Sign up error", Toast.LENGTH_SHORT)
+                                        "Error: "+e.getMessage(), Toast.LENGTH_SHORT)
                                         .show();
-
                             }
                         }
                     });
-
                 }
             }
         });

@@ -8,7 +8,7 @@
         android:id="@+id/txtuser"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Username" />
+        android:text="@string/username" />
 
     <EditText
         android:id="@+id/username"
@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/username"
-        android:text="Password" />
+        android:text="@string/password" />
 
     <EditText
         android:id="@+id/password"
@@ -36,13 +36,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/password"
-        android:text="Login" />
+        android:text="@string/login_button" />
 
     <Button
         android:id="@+id/signup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/login"
-        android:text="Signup" />
+        android:text="@string/signup_button" />
 
 </RelativeLayout>

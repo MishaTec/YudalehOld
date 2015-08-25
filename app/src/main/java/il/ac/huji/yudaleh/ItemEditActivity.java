@@ -63,11 +63,11 @@ public class ItemEditActivity extends AppCompatActivity {
              * @param v current list item
              */
             public void onClick(View v) {
-                String owner = ((EditText) findViewById(R.id.edtOwner)).getText().toString();
+                String owner = ((EditText) findViewById(R.id.edtOwner)).getText().toString().trim();
                 response.putExtra("owner", owner);
-                String title = ((EditText) findViewById(R.id.edtTitle)).getText().toString();
+                String title = ((EditText) findViewById(R.id.edtTitle)).getText().toString().trim();
                 response.putExtra("title", title);
-                String desc = ((EditText) findViewById(R.id.edtDesc)).getText().toString();
+                String desc = ((EditText) findViewById(R.id.edtDesc)).getText().toString().trim();
                 response.putExtra("desc", desc);
                 if (!((CheckBox) findViewById(R.id.checkRemind)).isChecked()) {
                     // In case the extra was already set by the dialog
