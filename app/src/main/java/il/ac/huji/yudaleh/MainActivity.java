@@ -19,11 +19,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.parse.ParseAnonymousUtils;
+import com.parse.ParseUser;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -36,6 +40,7 @@ import java.util.Date;
  * - add night mode
  * - remove notification on install
  * - add clear button
+ * https://www.parse.com/tutorials/anywall-android
  */
 public class MainActivity extends AppCompatActivity {
     private static final int NEW_ITEM_REQUEST = 42;
@@ -43,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
     private static final long NO_ID_PASSED = -22;
     private static final String I_OWE_TAB_TAG = "iOwe";
     private static final String OWE_ME_TAB_TAG = "oweMe";
+
+    private static final int MENU_ADD = Menu.FIRST;
+    private static final int MENU_LOGOUT = Menu.FIRST  +1;
+
     private ListAdapter iOweAdapter;
     private ListAdapter oweMeAdapter;
     private DBHelper helper;
@@ -81,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.list_item, null);
             }
-
             Cursor item = (Cursor) getItem(position);
 
             TextView titleText = (TextView) convertView.findViewById(R.id.txtTitle);
@@ -309,7 +317,56 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        System.out.println("/////////////////////////////////////////////////////// create  "+(savedInstanceState==null?"null":"NOT null"));
+
+
+        if(ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
+
+/*            Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
+            startActivity(intent);
+            finish();*/
+
+            Toast.makeText(getApplicationContext(),
+                    "anonymous",
+                    Toast.LENGTH_SHORT).show();
+
+        } else {
+
+            ParseUser currentUser = ParseUser.getCurrentUser();
+
+            if(currentUser != null) {
+/*
+                Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                startActivity(intent);
+                finish();*/
+//                ParseUser currentUser = ParseUser.getCurrentUser();
+
+                String struser = currentUser.getUsername().toString();
+
+                TextView txtUser = (TextView) findViewById(R.id.txtUser);
+                txtUser.setText("You are logged in as " + struser);
+
+                Button logout = (Button) findViewById(R.id.btnLogout);
+
+                logout.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        ParseUser.logOut();
+                        finish();
+                    }
+                });
+            } else {
+
+                Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
+                startActivity(intent);
+                finish();
+
+            }
+
+        }
+
+        // TODO: 24/08/15 put in welcome screen
+
 /*        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this); // TODO: 20/08/2015 remove
         SharedPreferences.Editor editor = preferences.edit();
         int i = preferences.getInt("numberoflaunches", 1);
@@ -355,6 +412,11 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        ParseUser currentUser = ParseUser.getCurrentUser();
+        if(currentUser != null) {
+            menu.add(0, MENU_LOGOUT, Menu.NONE, R.string.logout).setIcon(R.drawable.ic_launcher);
+        }
         return true;
     }
 
@@ -365,7 +427,7 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (id == R.id.menuItemAdd) {
+/*        if (id == R.id.menuItemAdd) {
             String table;
             if (tabHost.getCurrentTabTag().equals(I_OWE_TAB_TAG)) {
                 table = DBHelper.I_OWE_TABLE;
@@ -377,7 +439,24 @@ public class MainActivity extends AppCompatActivity {
             addNewItem(table);
             return true;
         }
-
+        if (id == R.id.menuLogin) {
+            Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
+            startActivity(intent);
+//            finish();
+            return true;
+        }
+        if (id == R.id.menuLogout) {
+            Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
+            startActivity(intent);
+//            finish();
+            return true;
+        }*/
+        switch (item.getItemId()) {
+            case MENU_LOGOUT:
+                ParseUser.logOut();
+                finish();
+                break;
+        }
         return super.onOptionsItemSelected(item);
     }
 
