@@ -39,7 +39,14 @@ public class LoginSignupActivity extends AppCompatActivity {
             public void onClick(View v) {
                 usernametxt = username.getText().toString().trim();
                 passwordtxt = password.getText().toString().trim();
-
+                if (usernametxt.equals("")) {
+                    username.setError("Please enter username");//it gives user to info message
+                    return;
+                }
+                if (passwordtxt.equals("")) {
+                    password.setError("Please enter password");//it gives user to info message
+                    return;
+                }
                 ParseUser.logInInBackground(usernametxt, passwordtxt,
                         new LogInCallback() {
                             @Override
@@ -65,30 +72,33 @@ public class LoginSignupActivity extends AppCompatActivity {
             public void onClick(View v) {
                 usernametxt = username.getText().toString().trim();
                 passwordtxt = password.getText().toString().trim();
-                if (usernametxt.equals("") || passwordtxt.equals("")) {
-                    Toast.makeText(getApplicationContext(),
-                            "All fields must be complete.",
-                            Toast.LENGTH_SHORT).show();
-                } else {
-                    ParseUser user = new ParseUser();
-                    user.setUsername(usernametxt);
-                    user.setPassword(passwordtxt);
-                    user.signUpInBackground(new SignUpCallback() {
-
-                        @Override
-                        public void done(ParseException e) {
-                            if (e == null) {
-                                Toast.makeText(getApplicationContext(),
-                                        "Successfully Signed up!",
-                                        Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(getApplicationContext(),
-                                        "Error: "+e.getMessage(), Toast.LENGTH_SHORT)
-                                        .show();
-                            }
-                        }
-                    });
+                if (usernametxt.equals("")) {
+                    username.setError("Please enter username");//it gives user to info message
+                    return;
                 }
+                if (passwordtxt.equals("")) {
+                    password.setError("Please enter password");//it gives user to info message
+                    return;
+                }
+                ParseUser user = new ParseUser();
+                user.setUsername(usernametxt);
+                user.setPassword(passwordtxt);
+                user.signUpInBackground(new SignUpCallback() {
+
+                    @Override
+                    public void done(ParseException e) {
+                        if (e == null) {
+                            Toast.makeText(getApplicationContext(),
+                                    "Successfully Signed up!",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(),
+                                    "Error: " + e.getMessage(), Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+                    }
+                });
+
             }
         });
     }

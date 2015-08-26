@@ -3,33 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="10dp" >
-
-    <TextView
-        android:id="@+id/txtuser"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/username" />
-
+s
     <EditText
         android:id="@+id/username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/txtuser"
-        android:inputType="text" />
-
-    <TextView
-        android:id="@+id/txtpassword"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/username"
-        android:text="@string/password" />
+        android:inputType="text"
+        android:hint="@string/username_hint" />
 
     <EditText
         android:id="@+id/password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/txtpassword"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:hint="@string/password_hint"
+        android:layout_below="@+id/username" />
 
     <Button
         android:id="@+id/login"

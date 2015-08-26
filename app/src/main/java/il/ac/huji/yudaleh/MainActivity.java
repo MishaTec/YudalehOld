@@ -27,10 +27,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.ParseAnonymousUtils;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseRelation;
 import com.parse.ParseUser;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Todo:
@@ -52,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int MENU_ADD = Menu.FIRST;
     private static final int MENU_LOGOUT = Menu.FIRST + 1;
     private static final int MENU_LOGIN = Menu.FIRST + 2;
+    private static final String POSTS = "Post";
+    private static final String RELATION = "UserRelation";
 
     private ListAdapter iOweAdapter;
     private ListAdapter oweMeAdapter;
@@ -158,7 +165,6 @@ public class MainActivity extends AppCompatActivity {
      * @param pos   the actual index in the list (starts from 0)
      */
     public void updateItem(String table, long rowId, int pos) {
-        System.out.println("&&&&&&&&&&&&&&&&&&&&&&&&&&&***************************** rowId=" + rowId + ", pos=" + pos); // TODO: 20/08/2015 remove
         Intent intent = new Intent(this, ItemEditActivity.class);
         intent.putExtra("rowId", rowId);
         Cursor item = helper.getItem(table, rowId); // todo remove - inefficient
@@ -179,12 +185,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        String title = data.getStringExtra("title");
-        Date dueDate = (Date) data.getSerializableExtra("dueDate");
-        String desc = data.getStringExtra("desc");
-        String owner = data.getStringExtra("owner");
-        String table = data.getStringExtra("table");
+        DBHelper.Record record = (DBHelper.Record) data.getSerializableExtra("record");
+//        DBHelper.Record rec = new DBHelper.Record(title, dueDate, desc, owner, "");
 
+        String table = data.getStringExtra("table");
         ListAdapter adapter;
         if (table.equals(DBHelper.OWE_ME_TABLE)) {
             adapter = oweMeAdapter;
@@ -193,29 +197,29 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (reqCode == NEW_ITEM_REQUEST) { // Add the item to DB
-            if (!title.equals("")) {
-                long newRowId = helper.insert(table, title, dueDate, desc, owner);
+            if (!record.getTitle().equals("")) {// TODO: 25/08/2015 check on edit
+                long newRowId = helper.insert(table, record);
                 adapter.changeCursor(helper.getCursor(table));
                 adapter.notifyDataSetChanged();
                 if (table.equals(DBHelper.OWE_ME_TABLE)) {
                     newRowId = -newRowId;
                 }
-                if (dueDate != null) {
-                    setAlarm(newRowId, title, dueDate, owner);
+                if (record.getDueDate() != null) {
+                    setAlarm(newRowId, record);
                 }
             }
         }
         if (reqCode == UPDATE_ITEM_REQUEST) { // Update the item in DB
-            if (!title.equals("")) {
+            if (!record.getTitle().equals("")) {// TODO: 25/08/2015 check on edit
                 long rowId = data.getLongExtra("rowId", NO_ID_PASSED);
-                helper.update(table, rowId, title, dueDate, desc, owner);
+                helper.update(table, rowId, record);
                 adapter.changeCursor(helper.getCursor(table));
                 adapter.notifyDataSetChanged();
                 if (table.equals(DBHelper.OWE_ME_TABLE)) {
                     rowId = -rowId;
                 }
-                if (dueDate != null) {
-                    setAlarm(rowId, title, dueDate, owner);
+                if (record.getDueDate() != null) {
+                    setAlarm(rowId, record);
                 } else {
                     cancelAlarm(rowId);
                 }
@@ -227,15 +231,13 @@ public class MainActivity extends AppCompatActivity {
      * Sets a new notification alarm.
      *
      * @param alarmId must be unique
-     * @param title   debt title
-     * @param dueDate debt due date
-     * @param owner   debt owner
+     * @param record debt record
      */
-    private void setAlarm(long alarmId, String title, Date dueDate, String owner) {
-        long timeInMillis = dueDate.getTime();
+    private void setAlarm(long alarmId, DBHelper.Record record) {
+        long timeInMillis = record.getDueDate().getTime();
         Intent alertIntent = new Intent(this, DueDateAlarm.class);
-        alertIntent.putExtra("title", title);
-        alertIntent.putExtra("owner", owner);
+        alertIntent.putExtra("title", record.getTitle());
+        alertIntent.putExtra("owner", record.getOwner());
         alertIntent.setData(Uri.parse("timer:" + alarmId));
 
         AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -365,6 +367,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onDestroy() {
+/*        ParseUser currentUser = ParseUser.getCurrentUser();
+
+        ParseObject post = new ParseObject(POSTS);
+        post.put(DBHelper.KEY_TITLE,"book");
+        post.put(DBHelper.KEY_OWNER,"Mike");
+        post.put("createdBy", ParseUser.getCurrentUser());
+        try {
+            post.save();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        ParseRelation userRelation = currentUser.getRelation(RELATION);
+        userRelation.add(post);
+        List<ParseObject> results = null;
+        try {
+            results=userRelation.getQuery().find();
+            Toast.makeText(this,results.size(),Toast.LENGTH_SHORT).show(); // todo remove
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }*/
+        super.onDestroy();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -386,31 +413,6 @@ public class MainActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
-/*        if (id == R.id.menuItemAdd) {
-            String table;
-            if (tabHost.getCurrentTabTag().equals(I_OWE_TAB_TAG)) {
-                table = DBHelper.I_OWE_TABLE;
-                System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% I OWE ADD");
-            } else {
-                table = DBHelper.OWE_ME_TABLE;
-                System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% OWE ME ADD");
-            }
-            addNewItem(table);
-            return true;
-        }
-        if (id == R.id.menuLogin) {
-            Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
-            startActivity(intent);
-//            finish();
-            return true;
-        }
-        if (id == R.id.menuLogout) {
-            Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
-            startActivity(intent);
-//            finish();
-            return true;
-        }*/
         switch (id) {
             case MENU_LOGOUT:
                 ParseUser.logOut();
@@ -422,16 +424,93 @@ public class MainActivity extends AppCompatActivity {
                 finish();//todo?
                 break;
             case MENU_ADD:
-                String table;
+/*                String table;
                 if (tabHost.getCurrentTabTag().equals(I_OWE_TAB_TAG)) {
                     table = DBHelper.I_OWE_TABLE;
                 } else {
                     table = DBHelper.OWE_ME_TABLE;
                 }
-                addNewItem(table);
+                addNewItem(table);*/
+                updateParse(DBHelper.I_OWE_TABLE);
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean updateParse(String table) {
+        ParseUser currentUser = ParseUser.getCurrentUser();
+/*        ArrayList<ParseObject> oldIOweItems = (ArrayList<ParseObject>) currentUser.get("iOweItemList");
+
+        for (ParseObject i : oldIOweItems) {
+            i.
+        }*/
+//                ArrayList<ParseObject> items = new ArrayList<ParseObject>();
+        Cursor c = helper.getCursor(table);
+
+        ArrayList<ParseObject> iOweItems = new ArrayList<ParseObject>();
+        ParseObject item = new ParseObject(POSTS);
+        if (c.moveToFirst()) {
+            do {
+/*                String title =c.getString(DBHelper.TITLE_COLUMN_INDEX);
+                Date due;
+                if (c.isNull(DBHelper.DUE_COLUMN_INDEX)) {
+                    due=null;
+                }
+                else{
+                    due=new Date(c.getLong(DBHelper.DUE_COLUMN_INDEX));
+                }
+                String desc  =c.getString(DBHelper.DESCRIPTION_COLUMN_INDEX);
+                String owner  =c.getString(DBHelper.OWNER_COLUMN_INDEX);
+                if(c.isNull(DBHelper.OBJECT_ID_COLUMN_INDEX)){
+                    helper.updateStringValue(table, DBHelper.KEY_OBJECT_ID, null, item.getObjectId());// FIXME: 26/08/2015 always null
+                }
+                else{
+                    item.setObjectId(c.getString(DBHelper.OBJECT_ID_COLUMN_INDEX));
+                }
+                item.put(DBHelper.KEY_TITLE,title );
+                item.put(DBHelper.KEY_DUE, due);
+                item.put(DBHelper.KEY_DESCRIPTION, desc);
+                item.put(DBHelper.KEY_OWNER, owner);
+                iOweItems.add(item);*/
+            } while (c.moveToNext());
+        }
+        currentUser.addAllUnique("iOweItemList",iOweItems);
+
+/*                ParseObject post = new ParseObject(POSTS);
+                post.put(DBHelper.KEY_TITLE, "100$");
+                post.put(DBHelper.KEY_OWNER, "Mike");
+                ParseObject post2 = new ParseObject(POSTS);
+                post2.put(DBHelper.KEY_TITLE, "200$");
+                post2.put(DBHelper.KEY_OWNER, "Mike2");
+//                post.put("createdBy", ParseUser.getCurrentUser());
+                items.add(post);
+                items.add(post2);*/
+/*                try {
+                    post.save();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                ParseRelation userRelation = currentUser.getRelation(RELATION);
+                userRelation.add(post);
+                List<ParseObject> results = null;
+                try {
+                    results = userRelation.getQuery().find();
+                    Toast.makeText(this, results.size(), Toast.LENGTH_SHORT).show(); // todo remove
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }*/
+        try {
+            currentUser.save();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        ArrayList<ParseObject> items2 = (ArrayList<ParseObject>) currentUser.get("iOweItemList");
+//        ParseObject o1= items2.get(0);
+//                ParseObject o2= items2.get(1);
+
+//        Toast.makeText(this, o1.getString(DBHelper.KEY_TITLE), Toast.LENGTH_SHORT).show(); // todo remove
+//                Toast.makeText(this, o2.getString(DBHelper.KEY_TITLE), Toast.LENGTH_SHORT).show(); // todo remove
+        return false;
     }
 
 /*
