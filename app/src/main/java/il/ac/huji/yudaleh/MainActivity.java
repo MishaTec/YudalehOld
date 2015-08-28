@@ -48,6 +48,7 @@ import java.util.List;
  * https://www.parse.com/tutorials/anywall-android
  */
 public class MainActivity extends AppCompatActivity {
+
     private static final int NEW_ITEM_REQUEST = 42;
     private static final int UPDATE_ITEM_REQUEST = 43;
     private static final long NO_ID_PASSED = -22;
@@ -174,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("dueDate", new Date(item.getLong(DBHelper.DUE_COLUMN_INDEX)));
         }
         intent.putExtra("desc", item.getString(DBHelper.DESCRIPTION_COLUMN_INDEX));
-        intent.putExtra("owner", item.getString(DBHelper.OWNER_COLUMN_INDEX));
+        intent.putExtra("owner", item.getString(DBHelper.OWNER_COLUMN_INDEX));// TODO: 28/08/2015 use record
         intent.putExtra("table", table);
         startActivityForResult(intent, UPDATE_ITEM_REQUEST);
     }
@@ -199,6 +200,12 @@ public class MainActivity extends AppCompatActivity {
         if (reqCode == NEW_ITEM_REQUEST) { // Add the item to DB
             if (!record.getTitle().equals("")) {// TODO: 25/08/2015 check on edit
                 long newRowId = helper.insert(table, record);
+                ParseObject newItem = new ParseObject(POSTS);
+                newItem.put(DBHelper.KEY_TITLE, record.getTitle());
+                newItem.put(DBHelper.KEY_OWNER, record.getOwner());
+                newItem.put(DBHelper.KEY_DESCRIPTION, record.getDesc());
+                newItem.put(DBHelper.KEY_DUE, record.getDueDate());
+                newItem.pinInBackground();
                 adapter.changeCursor(helper.getCursor(table));
                 adapter.notifyDataSetChanged();
                 if (table.equals(DBHelper.OWE_ME_TABLE)) {
@@ -318,6 +325,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ParseUser currentUser = ParseUser.getCurrentUser();
+        ParseObject item  = new ParseObject(POSTS);
+        Toast.makeText(this,"id: " +item.getObjectId(),Toast.LENGTH_LONG).show(); // todo remove
+
         if (currentUser != null && !ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
             String struser = currentUser.getUsername().toString();
             TextView txtUser = (TextView) findViewById(R.id.txtUser);
@@ -356,14 +366,20 @@ public class MainActivity extends AppCompatActivity {
 
         ListView iOweList = (ListView) findViewById(R.id.lstIOwe);
         ListView oweMeList = (ListView) findViewById(R.id.lstOweMe);
-        String[] from = new String[]{"title", "owner", "due"};
+/*        String[] from = new String[]{"title", "owner", "due"};
         int[] to = new int[]{R.id.txtTitle, R.id.txtOwner, R.id.txtDueDate};
         iOweAdapter = new ListAdapter(this, R.layout.list_item, helper.getCursor(DBHelper.I_OWE_TABLE), from, to,
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, DBHelper.I_OWE_TABLE);
         oweMeAdapter = new ListAdapter(this, R.layout.list_item, helper.getCursor(DBHelper.OWE_ME_TABLE), from, to,
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, DBHelper.OWE_ME_TABLE);
         initListAdapter(iOweAdapter, iOweList);
-        initListAdapter(oweMeAdapter, oweMeList);
+        initListAdapter(oweMeAdapter, oweMeList);*/
+        ParseQueryAdapter<ParseObject> adapter = new ParseQueryAdapter<ParseObject>(this, "Instrument");
+        adapter.setTextKey("name");
+        adapter.setImageKey("photo");
+
+        ListView listView = (ListView) findViewById(R.id.lstIOwe);
+        listView.setAdapter(adapter);
     }
 
     @Override
@@ -415,8 +431,9 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         switch (id) {
             case MENU_LOGOUT:
-                ParseUser.logOut();
-                recreate();
+/*                ParseUser.logOut();
+                recreate();*/
+                updateParse(DBHelper.I_OWE_TABLE);
                 break;
             case MENU_LOGIN:
                 Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
@@ -424,14 +441,13 @@ public class MainActivity extends AppCompatActivity {
                 finish();//todo?
                 break;
             case MENU_ADD:
-/*                String table;
+                String table;
                 if (tabHost.getCurrentTabTag().equals(I_OWE_TAB_TAG)) {
                     table = DBHelper.I_OWE_TABLE;
                 } else {
                     table = DBHelper.OWE_ME_TABLE;
                 }
-                addNewItem(table);*/
-                updateParse(DBHelper.I_OWE_TABLE);
+                addNewItem(table);
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -448,11 +464,12 @@ public class MainActivity extends AppCompatActivity {
         Cursor c = helper.getCursor(table);
 
         ArrayList<ParseObject> iOweItems = new ArrayList<ParseObject>();
-        ParseObject item = new ParseObject(POSTS);
+        ParseObject item;
         if (c.moveToFirst()) {
             do {
-/*                String title =c.getString(DBHelper.TITLE_COLUMN_INDEX);
-                Date due;
+                item  = new ParseObject(POSTS);
+                String title =c.getString(DBHelper.TITLE_COLUMN_INDEX);
+/*                Date due;
                 if (c.isNull(DBHelper.DUE_COLUMN_INDEX)) {
                     due=null;
                 }
@@ -460,21 +477,21 @@ public class MainActivity extends AppCompatActivity {
                     due=new Date(c.getLong(DBHelper.DUE_COLUMN_INDEX));
                 }
                 String desc  =c.getString(DBHelper.DESCRIPTION_COLUMN_INDEX);
-                String owner  =c.getString(DBHelper.OWNER_COLUMN_INDEX);
-                if(c.isNull(DBHelper.OBJECT_ID_COLUMN_INDEX)){
-                    helper.updateStringValue(table, DBHelper.KEY_OBJECT_ID, null, item.getObjectId());// FIXME: 26/08/2015 always null
+                String owner  =c.getString(DBHelper.OWNER_COLUMN_INDEX);*/
+/*                if(c.isNull(DBHelper.OBJECT_ID_COLUMN_INDEX)){
+                    helper.updateStringValue(table, DBHelper.KEY_ROWID, "1", item.getObjectId());// FIXME: 26/08/2015 always null
                 }
-                else{
-                    item.setObjectId(c.getString(DBHelper.OBJECT_ID_COLUMN_INDEX));
-                }
-                item.put(DBHelper.KEY_TITLE,title );
-                item.put(DBHelper.KEY_DUE, due);
+                else{*/
+                    item.setObjectId("1"/*c.getString(DBHelper.OBJECT_ID_COLUMN_INDEX)*/);
+//                }
+                item.put(DBHelper.KEY_TITLE, title);
+/*                item.put(DBHelper.KEY_DUE, due);
                 item.put(DBHelper.KEY_DESCRIPTION, desc);
-                item.put(DBHelper.KEY_OWNER, owner);
-                iOweItems.add(item);*/
+                item.put(DBHelper.KEY_OWNER, owner);*/
+                iOweItems.add(item);
             } while (c.moveToNext());
         }
-        currentUser.addAllUnique("iOweItemList",iOweItems);
+        currentUser.addAllUnique("iOweItemList", iOweItems);
 
 /*                ParseObject post = new ParseObject(POSTS);
                 post.put(DBHelper.KEY_TITLE, "100$");
@@ -504,7 +521,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        ArrayList<ParseObject> items2 = (ArrayList<ParseObject>) currentUser.get("iOweItemList");
+//        ArrayList<ParseObject> items2 = (ArrayList<ParseObject>) currentUser.get("iOweItemList");
 //        ParseObject o1= items2.get(0);
 //                ParseObject o2= items2.get(1);
 

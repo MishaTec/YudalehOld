@@ -2,6 +2,7 @@ package il.ac.huji.yudaleh;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,6 +14,7 @@ import android.widget.EditText;
 import com.github.jjobes.slidedatetimepicker.SlideDateTimeListener;
 import com.github.jjobes.slidedatetimepicker.SlideDateTimePicker;
 
+import java.io.Serializable;
 import java.util.Date;
 
 
@@ -31,6 +33,7 @@ public class ItemEditActivity extends AppCompatActivity {
         final Intent request = getIntent();
         final Intent response = new Intent();
         final long rowId = request.getLongExtra("rowId", NEW_ITEM);
+        final DBHelper.Record record = new DBHelper.Record();
 
         // Redirect table name
         response.putExtra("table", request.getStringExtra("table"));
@@ -48,7 +51,7 @@ public class ItemEditActivity extends AppCompatActivity {
             if (dueDate != null) {
                 ((Button) findViewById(R.id.btnRemind)).setText(android.text.format.DateFormat.format("MM/dd/yy h:mmaa", dueDate.getTime()));
                 ((CheckBox) findViewById(R.id.checkRemind)).setChecked(true);
-                response.putExtra("dueDate", dueDate);
+                record.setDueDate(dueDate);
             }
             ((EditText) findViewById(R.id.edtDesc)).setText(reqExtras.getString("desc"));
             ((EditText) findViewById(R.id.edtOwner)).setText(reqExtras.getString("owner"));
@@ -64,15 +67,16 @@ public class ItemEditActivity extends AppCompatActivity {
              */
             public void onClick(View v) {
                 String owner = ((EditText) findViewById(R.id.edtOwner)).getText().toString().trim();
-                response.putExtra("owner", owner);
+                record.setOwner(owner);
                 String title = ((EditText) findViewById(R.id.edtTitle)).getText().toString().trim();
-                response.putExtra("title", title);
+                record.setTitle(title);
                 String desc = ((EditText) findViewById(R.id.edtDesc)).getText().toString().trim();
-                response.putExtra("desc", desc);
+                record.setDesc(desc);
                 if (!((CheckBox) findViewById(R.id.checkRemind)).isChecked()) {
                     // In case the extra was already set by the dialog
-                    response.removeExtra("dueDate");
+                    record.setDueDate(null);
                 }
+                response.putExtra("record", (Serializable) record);
                 setResult(RESULT_OK, response);
                 finish();
             }
@@ -94,7 +98,7 @@ public class ItemEditActivity extends AppCompatActivity {
                         date.setSeconds(0);
                         ((Button) findViewById(R.id.btnRemind)).setText(android.text.format.DateFormat.format("MM/dd/yy h:mmaa", date.getTime()));
                         ((CheckBox) findViewById(R.id.checkRemind)).setChecked(true);
-                        response.putExtra("dueDate", date);
+                        record.setDueDate(date);
                     }
 
                     @Override

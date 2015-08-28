@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.parse.ParseObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
@@ -23,13 +24,32 @@ public class DBHelper extends SQLiteOpenHelper {
     /**
      * A single record/row in the DB
      */
-    public static class Record {
+    public static class Record implements Serializable{
         private String title;
         private Date dueDate;
         private String desc;
         private String owner;
         private String objId;
 
+        /**
+         * Default constructor
+         */
+        public Record() {
+            this.title = null;
+            this.dueDate = null;
+            this.desc = null;
+            this.owner = null;
+            this.objId = null;
+        }
+
+        /**
+         * Parametric constructor
+         * @param title
+         * @param dueDate
+         * @param desc
+         * @param owner
+         * @param objId
+         */
         public Record(String title, Date dueDate, String desc, String owner, String objId) {
             this.title = title;
             this.dueDate = dueDate;
@@ -38,6 +58,9 @@ public class DBHelper extends SQLiteOpenHelper {
             this.objId = objId;
         }
 
+        /**
+         * Getters
+         */
         public String getTitle() {
             return title;
         }
@@ -57,6 +80,29 @@ public class DBHelper extends SQLiteOpenHelper {
         public String getObjId() {
             return objId;
         }
+
+        /**
+         * Setters
+         */
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public void setDueDate(Date dueDate) {
+            this.dueDate = dueDate;
+        }
+
+        public void setDesc(String desc) {
+            this.desc = desc;
+        }
+
+        public void setOwner(String owner) {
+            this.owner = owner;
+        }
+
+        public void setObjId(String objId) {
+            this.objId = objId;
+        }
     }
 
     public static final String I_OWE_TABLE = "i_owe";
@@ -69,7 +115,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "yudaleh_notes";
-    private static final String KEY_ROWID = "_id";
+    public static final String KEY_ROWID = "_id";
     public static final String KEY_TITLE = "title";
     public static final String KEY_DUE = "due";
     public static final String KEY_DESCRIPTION = "desc";
@@ -167,8 +213,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public void updateStringValue(String table, String key, String oldValue, String newValue) {
         ContentValues newItem = new ContentValues();
         newItem.put(key, newValue);
-        getWritableDatabase().update(table, newItem, key + "=" + oldValue, null);
         System.out.println("****************************************** where: "+key + "=" + oldValue+ ". *****************");
+        getWritableDatabase().update(table, newItem, key + "=" + oldValue, null);
     }
 
     /**
