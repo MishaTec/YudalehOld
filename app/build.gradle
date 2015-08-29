@@ -26,4 +26,5 @@ dependencies {
 //    compile 'com.parse.bolts:bolts-android:1.+'
     compile fileTree(include: 'Parse-*.jar', dir: 'libs')
     compile files('libs/Parse-1.10.0.jar')
+    compile 'com.android.support:design:22.2.0'
 }
