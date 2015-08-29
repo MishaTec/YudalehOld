@@ -374,12 +374,12 @@ public class MainActivity extends AppCompatActivity {
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, DBHelper.OWE_ME_TABLE);
         initListAdapter(iOweAdapter, iOweList);
         initListAdapter(oweMeAdapter, oweMeList);*/
-        ParseQueryAdapter<ParseObject> adapter = new ParseQueryAdapter<ParseObject>(this, "Instrument");
-        adapter.setTextKey("name");
-        adapter.setImageKey("photo");
-
-        ListView listView = (ListView) findViewById(R.id.lstIOwe);
-        listView.setAdapter(adapter);
+//        ParseQueryAdapter<ParseObject> adapter = new ParseQueryAdapter<ParseObject>(this, "Instrument");
+//        adapter.setTextKey("name");
+//        adapter.setImageKey("photo");
+//
+//        ListView listView = (ListView) findViewById(R.id.lstIOwe);
+//        listView.setAdapter(adapter);
     }
 
     @Override
