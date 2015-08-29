@@ -8,10 +8,12 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,7 +37,11 @@ import com.parse.ParseUser;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Todo:
@@ -65,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
     private ListAdapter oweMeAdapter;
     private DBHelper helper;
     private TabHost tabHost;
+
+    // List of IDs that where updated but not yet uploaded to parse
+    private Set<String> modifiedIDs;
 
     /**
      * Inner class: cursor adapter between the database and the to-do list
@@ -238,7 +247,7 @@ public class MainActivity extends AppCompatActivity {
      * Sets a new notification alarm.
      *
      * @param alarmId must be unique
-     * @param record debt record
+     * @param record  debt record
      */
     private void setAlarm(long alarmId, DBHelper.Record record) {
         long timeInMillis = record.getDueDate().getTime();
@@ -325,8 +334,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ParseUser currentUser = ParseUser.getCurrentUser();
-        ParseObject item  = new ParseObject(POSTS);
-        Toast.makeText(this,"id: " +item.getObjectId(),Toast.LENGTH_LONG).show(); // todo remove
+        ParseObject item = new ParseObject(POSTS);
+        Toast.makeText(this, "id: " + item.getObjectId(), Toast.LENGTH_LONG).show(); // todo remove
 
         if (currentUser != null && !ParseAnonymousUtils.isLinked(ParseUser.getCurrentUser())) {
             String struser = currentUser.getUsername().toString();
@@ -335,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // TODO: 24/08/15 put in welcome screen
-/*        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this); // TODO: 20/08/2015 remove
+/*        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this); // TODO: 20/08/2015 add splash
         SharedPreferences.Editor editor = preferences.edit();
         int i = preferences.getInt("numberoflaunches", 1);
         if (i < 2) {
@@ -363,23 +372,25 @@ public class MainActivity extends AppCompatActivity {
         tabHost.addTab(tabSpec);
 
         helper = new DBHelper(this);
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = preferences.edit();
+        Set<String> modifiedIDs = preferences.getStringSet("modifiedIDs", null);
+        if (modifiedIDs != null && !modifiedIDs.isEmpty()) {
+            // If there are any unsaved changes
+            // TODO: 29/08/2015 put in splash
+            updateParse();
+        }
 
         ListView iOweList = (ListView) findViewById(R.id.lstIOwe);
         ListView oweMeList = (ListView) findViewById(R.id.lstOweMe);
-/*        String[] from = new String[]{"title", "owner", "due"};
+        String[] from = new String[]{"title", "owner", "due"};
         int[] to = new int[]{R.id.txtTitle, R.id.txtOwner, R.id.txtDueDate};
         iOweAdapter = new ListAdapter(this, R.layout.list_item, helper.getCursor(DBHelper.I_OWE_TABLE), from, to,
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, DBHelper.I_OWE_TABLE);
         oweMeAdapter = new ListAdapter(this, R.layout.list_item, helper.getCursor(DBHelper.OWE_ME_TABLE), from, to,
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, DBHelper.OWE_ME_TABLE);
         initListAdapter(iOweAdapter, iOweList);
-        initListAdapter(oweMeAdapter, oweMeList);*/
-//        ParseQueryAdapter<ParseObject> adapter = new ParseQueryAdapter<ParseObject>(this, "Instrument");
-//        adapter.setTextKey("name");
-//        adapter.setImageKey("photo");
-//
-//        ListView listView = (ListView) findViewById(R.id.lstIOwe);
-//        listView.setAdapter(adapter);
+        initListAdapter(oweMeAdapter, oweMeList);
     }
 
     @Override
@@ -433,7 +444,7 @@ public class MainActivity extends AppCompatActivity {
             case MENU_LOGOUT:
 /*                ParseUser.logOut();
                 recreate();*/
-                updateParse(DBHelper.I_OWE_TABLE);
+                updateParse();
                 break;
             case MENU_LOGIN:
                 Intent intent = new Intent(MainActivity.this, LoginSignupActivity.class);
@@ -453,13 +464,23 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private boolean updateParse(String table) {
+    private boolean updateParse() {// TODO: 29/08/2015 return value
+        String table = DBHelper.I_OWE_TABLE; // TODO: 29/08/2015 remove
         ParseUser currentUser = ParseUser.getCurrentUser();
-/*        ArrayList<ParseObject> oldIOweItems = (ArrayList<ParseObject>) currentUser.get("iOweItemList");
+        ArrayList<ParseObject> oldIOweItems = (ArrayList<ParseObject>) currentUser.get("iOweItemList");
 
+        // Update the list
+        for (String id : modifiedIDs) {
+
+        }
         for (ParseObject i : oldIOweItems) {
-            i.
-        }*/
+            String objId = i.getObjectId();
+            String title = i.getString(DBHelper.KEY_TITLE);
+            Date dueDate = i.getDate(DBHelper.KEY_DUE);
+// TODO: 29/08/2015  
+        
+            DBHelper.Record record = new DBHelper.Record();
+        }
 //                ArrayList<ParseObject> items = new ArrayList<ParseObject>();
         Cursor c = helper.getCursor(table);
 
@@ -467,8 +488,8 @@ public class MainActivity extends AppCompatActivity {
         ParseObject item;
         if (c.moveToFirst()) {
             do {
-                item  = new ParseObject(POSTS);
-                String title =c.getString(DBHelper.TITLE_COLUMN_INDEX);
+                item = new ParseObject(POSTS);
+                String title = c.getString(DBHelper.TITLE_COLUMN_INDEX);
 /*                Date due;
                 if (c.isNull(DBHelper.DUE_COLUMN_INDEX)) {
                     due=null;
@@ -482,7 +503,7 @@ public class MainActivity extends AppCompatActivity {
                     helper.updateStringValue(table, DBHelper.KEY_ROWID, "1", item.getObjectId());// FIXME: 26/08/2015 always null
                 }
                 else{*/
-                    item.setObjectId("1"/*c.getString(DBHelper.OBJECT_ID_COLUMN_INDEX)*/);
+                item.setObjectId("1"/*c.getString(DBHelper.OBJECT_ID_COLUMN_INDEX)*/);
 //                }
                 item.put(DBHelper.KEY_TITLE, title);
 /*                item.put(DBHelper.KEY_DUE, due);

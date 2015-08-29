@@ -105,6 +105,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+
     public static final String I_OWE_TABLE = "i_owe";
     public static final String OWE_ME_TABLE = "owe_me";
     public static final int TITLE_COLUMN_INDEX = 1;
