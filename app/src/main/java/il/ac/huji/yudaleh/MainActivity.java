@@ -366,20 +366,20 @@ public class MainActivity extends AppCompatActivity {
 
         ListView iOweList = (ListView) findViewById(R.id.lstIOwe);
         ListView oweMeList = (ListView) findViewById(R.id.lstOweMe);
-/*        String[] from = new String[]{"title", "owner", "due"};
+        String[] from = new String[]{"title", "owner", "due"};
         int[] to = new int[]{R.id.txtTitle, R.id.txtOwner, R.id.txtDueDate};
         iOweAdapter = new ListAdapter(this, R.layout.list_item, helper.getCursor(DBHelper.I_OWE_TABLE), from, to,
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, DBHelper.I_OWE_TABLE);
         oweMeAdapter = new ListAdapter(this, R.layout.list_item, helper.getCursor(DBHelper.OWE_ME_TABLE), from, to,
                 SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER, DBHelper.OWE_ME_TABLE);
         initListAdapter(iOweAdapter, iOweList);
-        initListAdapter(oweMeAdapter, oweMeList);*/
-        ParseQueryAdapter<ParseObject> adapter = new ParseQueryAdapter<ParseObject>(this, "Instrument");
+        initListAdapter(oweMeAdapter, oweMeList);
+/*        ParseQueryAdapter<ParseObject> adapter = new ParseQueryAdapter<ParseObject>(this, "Instrument");
         adapter.setTextKey("name");
         adapter.setImageKey("photo");
 
         ListView listView = (ListView) findViewById(R.id.lstIOwe);
-        listView.setAdapter(adapter);
+        listView.setAdapter(adapter);*/
     }
 
     @Override
