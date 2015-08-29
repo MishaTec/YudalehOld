@@ -7,104 +7,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import com.parse.ParseObject;
-
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * Helper class for managing the database.
  */
 public class DBHelper extends SQLiteOpenHelper {
-
-    /**
-     * A single record/row in the DB
-     */
-    public static class Record implements Serializable{
-        private String title;
-        private Date dueDate;
-        private String desc;
-        private String owner;
-        private String objId;
-
-        /**
-         * Default constructor
-         */
-        public Record() {
-            this.title = null;
-            this.dueDate = null;
-            this.desc = null;
-            this.owner = null;
-            this.objId = null;
-        }
-
-        /**
-         * Parametric constructor
-         * @param title
-         * @param dueDate
-         * @param desc
-         * @param owner
-         * @param objId
-         */
-        public Record(String title, Date dueDate, String desc, String owner, String objId) {
-            this.title = title;
-            this.dueDate = dueDate;
-            this.desc = desc;
-            this.owner = owner;
-            this.objId = objId;
-        }
-
-        /**
-         * Getters
-         */
-        public String getTitle() {
-            return title;
-        }
-
-        public Date getDueDate() {
-            return dueDate;
-        }
-
-        public String getDesc() {
-            return desc;
-        }
-
-        public String getOwner() {
-            return owner;
-        }
-
-        public String getObjId() {
-            return objId;
-        }
-
-        /**
-         * Setters
-         */
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public void setDueDate(Date dueDate) {
-            this.dueDate = dueDate;
-        }
-
-        public void setDesc(String desc) {
-            this.desc = desc;
-        }
-
-        public void setOwner(String owner) {
-            this.owner = owner;
-        }
-
-        public void setObjId(String objId) {
-            this.objId = objId;
-        }
-    }
-
 
     public static final String I_OWE_TABLE = "i_owe";
     public static final String OWE_ME_TABLE = "owe_me";
@@ -113,15 +22,14 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final int DESCRIPTION_COLUMN_INDEX = 3;
     public static final int OWNER_COLUMN_INDEX = 4;
     public static final int OBJECT_ID_COLUMN_INDEX = 5;
-
-    private static final int DATABASE_VERSION = 1;
-    private static final String DATABASE_NAME = "yudaleh_notes";
     public static final String KEY_ROWID = "_id";
     public static final String KEY_TITLE = "title";
     public static final String KEY_DUE = "due";
     public static final String KEY_DESCRIPTION = "desc";
     public static final String KEY_OWNER = "owner";
     public static final String KEY_OBJECT_ID = "obj_id";
+    private static final int DATABASE_VERSION = 1;
+    private static final String DATABASE_NAME = "yudaleh_notes";
     private static final String COLUMNS = " ( " +
             KEY_ROWID + " integer primary key autoincrement, " +
             KEY_TITLE + " text, " +
@@ -132,7 +40,6 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String I_OWE_TABLE_CREATE = "create table " + I_OWE_TABLE + COLUMNS;
     private static final String OWE_ME_TABLE_CREATE = "create table " + OWE_ME_TABLE + COLUMNS;
     private static final String TAG = "il.ac.huji.yudaleh";
-
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -242,5 +149,90 @@ public class DBHelper extends SQLiteOpenHelper {
             mCursor.moveToFirst();
         }
         return mCursor;
+    }
+
+    /**
+     * A single record/row in the DB
+     */
+    public static class Record implements Serializable {
+        private String title;
+        private Date dueDate;
+        private String desc;
+        private String owner;
+        private String objId;
+
+        /**
+         * Default constructor
+         */
+        public Record() {
+            this.title = null;
+            this.dueDate = null;
+            this.desc = null;
+            this.owner = null;
+            this.objId = null;
+        }
+
+        /**
+         * Parametric constructor
+         *
+         * @param title
+         * @param dueDate
+         * @param desc
+         * @param owner
+         * @param objId
+         */
+        public Record(String title, Date dueDate, String desc, String owner, String objId) {
+            this.title = title;
+            this.dueDate = dueDate;
+            this.desc = desc;
+            this.owner = owner;
+            this.objId = objId;
+        }
+
+        /**
+         * Getters
+         */
+        public String getTitle() {
+            return title;
+        }
+
+        /**
+         * Setters
+         */
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public Date getDueDate() {
+            return dueDate;
+        }
+
+        public void setDueDate(Date dueDate) {
+            this.dueDate = dueDate;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+
+        public void setDesc(String desc) {
+            this.desc = desc;
+        }
+
+        public String getOwner() {
+            return owner;
+        }
+
+        public void setOwner(String owner) {
+            this.owner = owner;
+        }
+
+        public String getObjId() {
+            return objId;
+        }
+
+        public void setObjId(String objId) {
+            this.objId = objId;
+        }
     }
 }
