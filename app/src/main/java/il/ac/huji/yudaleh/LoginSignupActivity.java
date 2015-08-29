@@ -30,7 +30,6 @@ public class LoginSignupActivity extends AppCompatActivity {
 
         username = (EditText) findViewById(R.id.username);
         password = (EditText) findViewById(R.id.password);
-
         loginButton = (Button) findViewById(R.id.login);
         signupButton = (Button) findViewById(R.id.signup);
 
@@ -38,73 +37,68 @@ public class LoginSignupActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
-                usernametxt = username.getText().toString();
-                passwordtxt = password.getText().toString();
-
+                usernametxt = username.getText().toString().trim();
+                passwordtxt = password.getText().toString().trim();
+                if (usernametxt.equals("")) {
+                    username.setError("Please enter username");//it gives user to info message
+                    return;
+                }
+                if (passwordtxt.equals("")) {
+                    password.setError("Please enter password");//it gives user to info message
+                    return;
+                }
                 ParseUser.logInInBackground(usernametxt, passwordtxt,
                         new LogInCallback() {
-
                             @Override
                             public void done(ParseUser user, ParseException e) {
                                 if (user != null) {
-
                                     Intent intent = new Intent(
                                             LoginSignupActivity.this,
                                             MainActivity.class);
                                     startActivity(intent);
                                     finish();
-
                                 } else {
-
                                     Toast.makeText(
                                             getApplicationContext(),
-                                            "This user doesn't exist. Please signup",
+                                            "Wrong username or password. Try again.",
                                             Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });
             }
         });
-
         signupButton.setOnClickListener(new OnClickListener() {
-
             @Override
             public void onClick(View v) {
-                usernametxt = username.getText().toString();
-                passwordtxt = password.getText().toString();
-
-                if (usernametxt.equals("") && passwordtxt.equals("")) {
-
-                    Toast.makeText(getApplicationContext(),
-                            "Please complete the sign up form",
-                            Toast.LENGTH_SHORT).show();
-
-                } else {
-
-                    ParseUser user = new ParseUser();
-                    user.setUsername(usernametxt);
-                    user.setPassword(passwordtxt);
-                    user.signUpInBackground(new SignUpCallback() {
-
-                        @Override
-                        public void done(ParseException e) {
-                            if (e == null) {
-
-                                Toast.makeText(getApplicationContext(),
-                                        "Successfully Signed up!",
-                                        Toast.LENGTH_SHORT).show();
-
-                            } else {
-
-                                Toast.makeText(getApplicationContext(),
-                                        "Sign up error", Toast.LENGTH_SHORT)
-                                        .show();
-
-                            }
-                        }
-                    });
-
+                usernametxt = username.getText().toString().trim();
+                passwordtxt = password.getText().toString().trim();
+                if (usernametxt.equals("")) {
+                    username.setError("Please enter username");//it gives user to info message
+                    return;
                 }
+                if (passwordtxt.equals("")) {
+                    password.setError("Please enter password");//it gives user to info message
+                    return;
+                }
+                ParseUser user = new ParseUser();
+                user.setUsername(usernametxt);
+                user.setPassword(passwordtxt);
+                user.signUpInBackground(new SignUpCallback() {
+
+                    @Override
+                    public void done(ParseException e) {
+                        if (e == null) {
+                            Toast.makeText(getApplicationContext(),
+                                    "Successfully Signed up!",
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(),
+                                    "Error: " + e.getMessage(), Toast.LENGTH_SHORT)
+                                    .show();
+                        }
+                    }
+                });
+
             }
         });
     }

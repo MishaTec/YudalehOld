@@ -30,11 +30,20 @@ public class DueDateAlarm extends BroadcastReceiver {
 
         String firstPart = "Return ";
         String preposition = " to ";
-        if (alarmId < 0) { // Owe me
+        if (isFromOweMeTable(alarmId)) {
             firstPart = "Get your ";
             preposition = " from ";
         }
-        createNotification(context, firstPart+title, preposition + owner, title, alarmId);
+        createNotification(context, firstPart + title, preposition + owner, title, alarmId);
+    }
+
+    /**
+     * Checks if the
+     * @param alarmId
+     * @return
+     */
+    private boolean isFromOweMeTable(long alarmId) {
+        return alarmId < 0;
     }
 
     /**

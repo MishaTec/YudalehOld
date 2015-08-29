@@ -7,12 +7,103 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.parse.ParseObject;
+
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Helper class for managing the database.
  */
 public class DBHelper extends SQLiteOpenHelper {
+
+    /**
+     * A single record/row in the DB
+     */
+    public static class Record implements Serializable{
+        private String title;
+        private Date dueDate;
+        private String desc;
+        private String owner;
+        private String objId;
+
+        /**
+         * Default constructor
+         */
+        public Record() {
+            this.title = null;
+            this.dueDate = null;
+            this.desc = null;
+            this.owner = null;
+            this.objId = null;
+        }
+
+        /**
+         * Parametric constructor
+         * @param title
+         * @param dueDate
+         * @param desc
+         * @param owner
+         * @param objId
+         */
+        public Record(String title, Date dueDate, String desc, String owner, String objId) {
+            this.title = title;
+            this.dueDate = dueDate;
+            this.desc = desc;
+            this.owner = owner;
+            this.objId = objId;
+        }
+
+        /**
+         * Getters
+         */
+        public String getTitle() {
+            return title;
+        }
+
+        public Date getDueDate() {
+            return dueDate;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+
+        public String getOwner() {
+            return owner;
+        }
+
+        public String getObjId() {
+            return objId;
+        }
+
+        /**
+         * Setters
+         */
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public void setDueDate(Date dueDate) {
+            this.dueDate = dueDate;
+        }
+
+        public void setDesc(String desc) {
+            this.desc = desc;
+        }
+
+        public void setOwner(String owner) {
+            this.owner = owner;
+        }
+
+        public void setObjId(String objId) {
+            this.objId = objId;
+        }
+    }
 
     public static final String I_OWE_TABLE = "i_owe";
     public static final String OWE_ME_TABLE = "owe_me";
@@ -20,20 +111,23 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final int DUE_COLUMN_INDEX = 2;
     public static final int DESCRIPTION_COLUMN_INDEX = 3;
     public static final int OWNER_COLUMN_INDEX = 4;
+    public static final int OBJECT_ID_COLUMN_INDEX = 5;
 
     private static final int DATABASE_VERSION = 1;
     private static final String DATABASE_NAME = "yudaleh_notes";
-    private static final String KEY_ROWID = "_id";
-    private static final String KEY_TITLE = "title";
-    private static final String KEY_DUE = "due";
-    private static final String KEY_DESCRIPTION = "desc";
-    private static final String KEY_OWNER = "owner";
+    public static final String KEY_ROWID = "_id";
+    public static final String KEY_TITLE = "title";
+    public static final String KEY_DUE = "due";
+    public static final String KEY_DESCRIPTION = "desc";
+    public static final String KEY_OWNER = "owner";
+    public static final String KEY_OBJECT_ID = "obj_id";
     private static final String COLUMNS = " ( " +
             KEY_ROWID + " integer primary key autoincrement, " +
             KEY_TITLE + " text, " +
             KEY_DUE + " long, " +
             KEY_DESCRIPTION + " text," +
-            KEY_OWNER + " text );";
+            KEY_OWNER + " text," +
+            KEY_OBJECT_ID + " text );";
     private static final String I_OWE_TABLE_CREATE = "create table " + I_OWE_TABLE + COLUMNS;
     private static final String OWE_ME_TABLE_CREATE = "create table " + OWE_ME_TABLE + COLUMNS;
     private static final String TAG = "il.ac.huji.yudaleh";
@@ -71,47 +165,56 @@ public class DBHelper extends SQLiteOpenHelper {
     /**
      * Inserts a new item to the db
      *
-     * @param table   which table to use
-     * @param title   item's content
-     * @param dueDate item's due date
-     * @param desc    item's description
-     * @param owner   item's owner
+     * @param table which table to use
+     * @param rec   item's record
      * @return the rowId of the created item
      */
-    public long insert(String table, String title, Date dueDate, String desc, String owner) {
+    public long insert(String table, Record rec) {
         ContentValues newItem = new ContentValues();
-        newItem.put(KEY_TITLE, title);
-        if (dueDate != null) {
-            newItem.put(KEY_DUE, dueDate.getTime());
+        newItem.put(KEY_TITLE, rec.title);
+        if (rec.dueDate != null) {
+            newItem.put(KEY_DUE, rec.dueDate.getTime());
         } else {
             newItem.putNull(KEY_DUE);
         }
-        newItem.put(KEY_DESCRIPTION, desc);
-        newItem.put(KEY_OWNER, owner);
+        newItem.put(KEY_DESCRIPTION, rec.desc);
+        newItem.put(KEY_OWNER, rec.owner);
         return getWritableDatabase().insert(table, null, newItem);
     }
 
     /**
-     * Updates an item with the given id
+     * Updates an item by the given id
      *
-     * @param table   which table to use
-     * @param rowId   the index of the row
-     * @param title   item's content
-     * @param dueDate item's due date
-     * @param desc    item's description
-     * @param owner   item's owner
+     * @param table which table to use
+     * @param rowId the index of the row
+     * @param rec   item's record
      */
-    public void update(String table, long rowId, String title, Date dueDate, String desc, String owner) {
+    public void update(String table, long rowId, Record rec) {
         ContentValues newItem = new ContentValues();
-        newItem.put(KEY_TITLE, title);
-        if (dueDate != null) {
-            newItem.put(KEY_DUE, dueDate.getTime());
+        newItem.put(KEY_TITLE, rec.title);
+        if (rec.dueDate != null) {
+            newItem.put(KEY_DUE, rec.dueDate.getTime());
         } else {
             newItem.putNull(KEY_DUE);
         }
-        newItem.put(KEY_DESCRIPTION, desc);
-        newItem.put(KEY_OWNER, owner);
+        newItem.put(KEY_DESCRIPTION, rec.desc);
+        newItem.put(KEY_OWNER, rec.owner);
         getWritableDatabase().update(table, newItem, KEY_ROWID + "=" + rowId, null);
+    }
+
+    /**
+     * Updates an item by the given key
+     *
+     * @param table which table to use
+     * @param key the key column
+     * @param oldValue the value to find
+     * @param newValue the new value to put
+     */
+    public void updateStringValue(String table, String key, String oldValue, String newValue) {
+        ContentValues newItem = new ContentValues();
+        newItem.put(key, newValue);
+        System.out.println("****************************************** where: "+key + "=" + oldValue+ ". *****************");
+        getWritableDatabase().update(table, newItem, key + "=" + oldValue, null);
     }
 
     /**
