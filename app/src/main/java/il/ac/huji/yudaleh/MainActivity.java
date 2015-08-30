@@ -39,6 +39,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Todo:
@@ -206,12 +207,12 @@ public class MainActivity extends AppCompatActivity {
         if (reqCode == NEW_ITEM_REQUEST) { // Add the item to DB
             if (!record.getTitle().equals("")) {// TODO: 25/08/2015 check on edit
                 long newRowId = helper.insert(table, record);
-                ParseObject newItem = new ParseObject(POSTS);
+/*                ParseObject newItem = new ParseObject(POSTS);
                 newItem.put(DBHelper.KEY_TITLE, record.getTitle());
                 newItem.put(DBHelper.KEY_OWNER, record.getOwner());
                 newItem.put(DBHelper.KEY_DESCRIPTION, record.getDesc());
                 newItem.put(DBHelper.KEY_DUE, record.getDueDate());
-                newItem.pinInBackground();
+                newItem.pinInBackground();*/// TODO: 29/08/2015  
                 adapter.changeCursor(helper.getCursor(table));
                 adapter.notifyDataSetChanged();
                 if (table.equals(DBHelper.OWE_ME_TABLE)) {
